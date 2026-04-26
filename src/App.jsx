@@ -70,17 +70,16 @@ function useIRC(token, username) {
           const userMatch = raw.match(/:(\w+)!\w+@/);
           if (!msgMatch || !userMatch) return;
           const displayName = tags["display-name"] || userMatch[1];
-          // Ignore nos propres messages (déjà ajoutés localement)
-          if (displayName.toLowerCase() === usernameRef.current?.toLowerCase()) return;
+          const color       = tags["color"] || colorFor(displayName);
+          const badges      = tags["badges"]||"";
+          const subMonthsMsg = tags["badge-info"]?.match(/subscriber\/(\d+)/)?.[1];
+          const msgId       = tags["id"] || `irc-${Date.now()}-${Math.random()}`;
+          const msgText     = msgMatch[1];
+          const msgTs       = parseInt(tags["tmi-sent-ts"] || Date.now());
           setIrcMessages(prev => [...prev, {
-            id: tags["id"] || `irc-${Date.now()}-${Math.random()}`,
-            displayName,
-            color: tags["color"] || colorFor(displayName),
-            badges: tags["badges"]||"",
-            text: msgMatch[1],
-            isMod: tags["mod"]==="1",
-            subMonths: tags["badge-info"]?.match(/subscriber\/(\d+)/)?.[1],
-            ts: parseInt(tags["tmi-sent-ts"] || Date.now()),
+            id: msgId, displayName, color, badges,
+            text: msgText, isMod: tags["mod"]==="1",
+            subMonths: subMonthsMsg, ts: msgTs,
           }].slice(-150));
         }
 
@@ -187,9 +186,11 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
 
-  // Fusion IRC + local, triés par ts
+  // Fusion IRC + local, on retire les locaux dont le texte est déjà dans IRC
   const allMessages = (() => {
-    const all = [...ircMessages, ...localMessages];
+    const ircTexts = new Set(ircMessages.map(m => m.text));
+    const filteredLocal = localMessages.filter(m => !ircTexts.has(m.text));
+    const all = [...ircMessages, ...filteredLocal];
     all.sort((a,b) => (a.ts||0) - (b.ts||0));
     return all;
   })();
