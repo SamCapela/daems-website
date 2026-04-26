@@ -284,7 +284,17 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
                     <MiniUserBanner name={msg.displayName} color={msg.color} subMonths={parseInt(msg.subMonths)}/>
                   </span>
                 ) : (
-                  <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
+                  <>
+                    {!msg.isLocal && (
+                      <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
+                        title="S'abonner"
+                        style={{display:"inline-flex",alignItems:"center",gap:2,marginRight:5,padding:"1px 5px",background:"rgba(145,71,255,0.15)",border:"1px solid rgba(145,71,255,0.3)",borderRadius:4,fontSize:"0.6rem",fontWeight:700,color:"#9147ff",textDecoration:"none",verticalAlign:"middle",opacity:0.65,transition:"opacity 0.15s,background 0.15s",lineHeight:1.4,flexShrink:0}}
+                        onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.background="rgba(145,71,255,0.3)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.opacity="0.65";e.currentTarget.style.background="rgba(145,71,255,0.15)";}}
+                      >⭐ Sub</a>
+                    )}
+                    <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
+                  </>
                 )}
                 <span style={{color: msg.isLocal ? "#c0b0ff" : "#d0c8e8"}}>: {msg.text}</span>
               </div>
