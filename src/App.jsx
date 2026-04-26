@@ -346,7 +346,7 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
     if (!token) return;
     Promise.all([
       twitchGet("/channels/followers",token,{broadcaster_id:BROADCASTER_ID,first:1}),
-      twitchGet("/subscriptions",token,{broadcaster_id:BROADCASTER_ID,first:1}).catch(()=>({total:null})),
+      fetch(`${window.location.origin}/api/sub-count`).then(r=>r.ok?r.json():{total:null}).catch(()=>({total:null})),
     ]).then(([f,s])=>setStats({followers:f.total??null,subs:s.total??null})).catch(()=>{});
   }, [token]);
 
