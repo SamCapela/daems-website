@@ -457,17 +457,12 @@ function LeaderboardPage({ token, userInfo, isFollower, isSub, subMonths }) {
     if (!token) return;
     const base = window.location.origin;
     Promise.all([
-      fetch(`${base}/api/subscribers`).then(r=>r.json()).then(d=>setSubs(d.data||[])).catch(()=>{}),
+      fetch(`${base}/api/leaderboard-subs`).then(r=>r.json()).then(d=>setSubs(d.data||[])).catch(()=>{}),
       fetch(`${base}/api/bits`).then(r=>r.json()).then(d=>setBits(d.data||[])).catch(()=>{}),
     ]).finally(() => setLoading(false));
   }, [token]);
 
-  // Tier → bannière tier
-  const tierToBanner = (tier) => {
-    if (tier === "3000") return 4; // Diamond
-    if (tier === "2000") return 3; // Platinum
-    return 2; // Gold pour T1
-  };
+  const monthsToBanner = (months) => getBannerTier(months, true);
 
   // Bits rank → bannière
   const bitsToBanner = (rank) => {
@@ -506,10 +501,11 @@ function LeaderboardPage({ token, userInfo, isFollower, isSub, subMonths }) {
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {subs.map((s, i) => {
-                const bTier = tierToBanner(s.tier);
+                const bTier = monthsToBanner(s.sub_months);
                 const bs    = bannerStyles[bTier];
                 const isMe  = userInfo?.id === s.user_id;
                 const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":null;
+                const duration = formatSubDuration(s.sub_months);
                 return (
                   <div key={s.user_id} style={{
                     display:"flex", alignItems:"center", gap:12, padding:"8px 12px",
@@ -529,15 +525,8 @@ function LeaderboardPage({ token, userInfo, isFollower, isSub, subMonths }) {
                       <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{s.user_name}</span>
                     </div>
                     <div style={{ flex:1 }}>
-                      <div style={{ display:"flex", gap:5, alignItems:"center" }}>
-                        <span style={{ fontSize:"0.68rem", color:"#f59e0b", background:"rgba(245,158,11,0.15)", borderRadius:5, padding:"1px 6px", fontWeight:700 }}>
-                          T{s.tier[0]}{s.is_gift ? " 🎁" : ""}
-                        </span>
-                        {s.followed_at && (
-                          <span style={{ fontSize:"0.65rem", color:"#505070" }}>
-                            follow {new Date(s.followed_at).toLocaleDateString("fr-FR", { year:"2-digit", month:"short" })}
-                          </span>
-                        )}
+                      <div style={{ fontSize:"0.68rem", color: bs.subColor, fontFamily:"monospace", letterSpacing:"0.08em" }}>
+                        ⭐ {duration}
                       </div>
                     </div>
                   </div>
@@ -773,7 +762,21 @@ export default function App() {
       .finally(()=>setBooting(false));
   },[token]);
 
-  const login=()=>{window.location.href=`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&force_verify=false`;};
+  // Sauvegarde les données du viewer dans KV quand on a tout
+  useEffect(() => {
+    if (!token || !userInfo || subMonths === null) return;
+    fetch(`${window.location.origin}/api/store-viewer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token,
+        user_id:      userInfo.id,
+        display_name: userInfo.display_name,
+        sub_months:   subMonths,
+        is_sub:       isSub,
+      }),
+    }).catch(() => {});
+  }, [token, userInfo?.id, subMonths, isSub]);
   const logout=()=>{localStorage.removeItem("tw_token");setToken(null);setUserInfo(null);setIsFollower(false);setIsSub(false);};
 
   if(!token)return<LoginPage onLogin={login}/>;
