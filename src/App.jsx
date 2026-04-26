@@ -188,7 +188,7 @@ function MiniUserBanner({ name, color, subMonths }) {
       display:"inline-flex", alignItems:"center", justifyContent:"center",
       background: s.bg, border: s.border, borderRadius: 5,
       boxShadow: s.shadow,
-      padding: "1px 8px", height: 18,
+      padding: "2px 10px", height: 22,
       position: "relative", overflow: "hidden",
     }}>
       {s.shimmer && (
@@ -196,7 +196,7 @@ function MiniUserBanner({ name, color, subMonths }) {
       )}
       <span style={{
         color: s.textColor, fontFamily:"'Cinzel',serif", fontWeight:700,
-        fontSize:"0.65rem", letterSpacing:"0.05em", textShadow: s.textShadow,
+        fontSize:"0.75rem", letterSpacing:"0.05em", textShadow: s.textShadow,
         zIndex:1, whiteSpace:"nowrap",
       }}>{name}</span>
     </span>
