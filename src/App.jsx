@@ -284,7 +284,17 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
                     <MiniUserBanner name={msg.displayName} color={msg.color} subMonths={parseInt(msg.subMonths)}/>
                   </span>
                 ) : (
-                  <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
+                  <>
+                    <span style={{color:msg.color,fontWeight:700,marginRight:2}}>{msg.displayName}</span>
+                    {!msg.isLocal && (
+                      <a href={`https://www.twitch.tv/${BROADCASTER}`} target="_blank" rel="noreferrer"
+                        title={`Offrir un sub à ${msg.displayName}`}
+                        style={{display:"inline-flex",alignItems:"center",marginRight:4,opacity:0.25,transition:"opacity 0.15s,transform 0.15s",textDecoration:"none",verticalAlign:"middle",fontSize:"0.75rem",lineHeight:1}}
+                        onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="scale(1.35)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.opacity="0.25";e.currentTarget.style.transform="scale(1)";}}
+                      >🎁</a>
+                    )}
+                  </>
                 )}
                 <span style={{color: msg.isLocal ? "#c0b0ff" : "#d0c8e8"}}>: {msg.text}</span>
               </div>
