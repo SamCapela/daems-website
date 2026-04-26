@@ -444,13 +444,16 @@ function ClipCard({clip}) {
         onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";e.currentTarget.style.borderColor="rgba(145,71,255,0.18)";}}>
         <div style={{position:"relative"}}>
           <img src={clip.thumbnail_url} alt={clip.title} style={{width:"100%",aspectRatio:"16/9",objectFit:"cover",display:"block"}}/>
-          <div style={{position:"absolute",bottom:7,right:7,background:"rgba(0,0,0,0.7)",color:"#fff",fontSize:"0.7rem",padding:"2px 7px",borderRadius:5,fontWeight:600}}>👁 {clip.view_count?.toLocaleString("fr-FR")}</div>
           <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"rgba(145,71,255,0.85)",borderRadius:"50%",width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center"}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
           </div>
         </div>
         <div style={{padding:"11px 13px"}}>
-          <div style={{color:"#ddd0f8",fontWeight:600,fontSize:"0.87rem",lineHeight:1.35,marginBottom:5,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{clip.title}</div>
+          <div style={{color:"#ddd0f8",fontWeight:600,fontSize:"0.87rem",lineHeight:1.35,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{clip.title}</div>
+          <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:7}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#9147ff"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            <span style={{color:"#bf94ff",fontWeight:700,fontSize:"0.82rem"}}>{clip.view_count?.toLocaleString("fr-FR")} vues</span>
+          </div>
           <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.7rem",color:"#605080"}}>
             <span>{clip.creator_name}</span>
             <span>{new Date(clip.created_at).toLocaleDateString("fr-FR")}</span>
