@@ -368,7 +368,7 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
           <GoalCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs}      goal={GOAL_SUBS}      color="#f59e0b"/>
         </div>
         <div style={{animation:"giftFloat 3.5s ease-in-out infinite"}}>
-          <a href={`https://www.twitch.tv/subs/${BROADCASTER}?gifting=1`} target="_blank" rel="noreferrer"
+          <a href={`https://www.twitch.tv/${BROADCASTER}`} target="_blank" rel="noreferrer"
             style={{display:"block",borderRadius:12,overflow:"hidden",cursor:"pointer",textDecoration:"none",boxShadow:"0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)",transition:"transform 0.25s, box-shadow 0.25s"}}
             onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.05)";e.currentTarget.style.boxShadow="0 0 30px rgba(145,71,255,0.9), 0 0 16px rgba(255,140,0,0.65)";}}
             onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)";}}
