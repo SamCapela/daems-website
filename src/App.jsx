@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 const CLIENT_ID    = "mk16oce917g7q5i485zlyackq33ce0";
-const REDIRECT_URI = "http://localhost:5173";
+const REDIRECT_URI = window.location.origin;
 const BROADCASTER  = "daems_";
 const BROADCASTER_ID = "441069979";
 
