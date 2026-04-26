@@ -344,7 +344,7 @@ function ActivityTicker({ token }) {
 }
 
 // ── HOME ───────────────────────────────────────────────────────────────────
-function HomePage({ token }) {
+function HomePage({ token, userInfo }) {
   const [stats, setStats] = useState({followers:null,subs:null});
 
   useEffect(() => {
@@ -777,7 +777,7 @@ export default function App() {
       </header>
 
       <main style={{paddingTop:80,padding:"96px 28px 48px",maxWidth:1280,margin:"0 auto",width:"100%"}}>
-        {tab==="home"        &&<HomePage token={token}/>}
+        {tab==="home"        &&<HomePage token={token} userInfo={userInfo}/>}
         {tab==="clips"       &&<ClipsPage token={token}/>}
         {tab==="leaderboard" &&<LeaderboardPage token={token} userInfo={userInfo} isFollower={isFollower} isSub={isSub}/>}
         {tab==="shop"        &&<ShopPage/>}
