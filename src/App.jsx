@@ -179,6 +179,30 @@ const TABS = [
   {id:"shop",  label:"Boutique",IC:Icon.Shop},
 ];
 
+// ── MINI BANNER INLINE (pour le chat) ─────────────────────────────────────
+function MiniUserBanner({ name, color, subMonths }) {
+  const tier = getBannerTier(subMonths, true);
+  const s    = bannerStyles[tier];
+  return (
+    <span style={{
+      display:"inline-flex", alignItems:"center", justifyContent:"center",
+      background: s.bg, border: s.border, borderRadius: 5,
+      boxShadow: s.shadow,
+      padding: "1px 8px", height: 18,
+      position: "relative", overflow: "hidden",
+    }}>
+      {s.shimmer && (
+        <span style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.15) 50%,transparent 62%)",animation:"shimmer 2.5s infinite"}}/>
+      )}
+      <span style={{
+        color: s.textColor, fontFamily:"'Cinzel',serif", fontWeight:700,
+        fontSize:"0.65rem", letterSpacing:"0.05em", textShadow: s.textShadow,
+        zIndex:1, whiteSpace:"nowrap",
+      }}>{name}</span>
+    </span>
+  );
+}
+
 // ── CHAT ───────────────────────────────────────────────────────────────────
 function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) {
   const [input, setInput] = useState("");
@@ -253,8 +277,13 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
                 {parseBadges(typeof msg.badges==="string"?msg.badges:"").map(b=>badgeEmoji(b)).filter(Boolean).join("")}
               </span>
               <div style={{flex:1,fontSize:"0.82rem",lineHeight:1.45,wordBreak:"break-word"}}>
-                <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
-                {msg.subMonths&&<span style={{fontSize:"0.62rem",color:"#9147ff",background:"rgba(145,71,255,0.15)",borderRadius:4,padding:"1px 4px",marginRight:4}}>{msg.subMonths}m</span>}
+                {msg.subMonths ? (
+                  <span style={{display:"inline-flex",alignItems:"center",marginRight:6,verticalAlign:"middle"}}>
+                    <MiniUserBanner name={msg.displayName} color={msg.color} subMonths={parseInt(msg.subMonths)}/>
+                  </span>
+                ) : (
+                  <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
+                )}
                 <span style={{color: msg.isLocal ? "#c0b0ff" : "#d0c8e8"}}>: {msg.text}</span>
               </div>
             </div>
