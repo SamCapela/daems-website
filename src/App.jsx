@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const CLIENT_ID      = "mk16oce917g7q5i485zlyackq33ce0";
 const REDIRECT_URI   = window.location.origin;
 const BROADCASTER    = "daems_";
 const BROADCASTER_ID = "441069979";
-
 const SCOPES = ["user:read:email","user:read:follows","user:read:subscriptions","chat:read","chat:edit"].join(" ");
 
 const twitchGet = async (path, token, params = {}) => {
@@ -15,12 +14,14 @@ const twitchGet = async (path, token, params = {}) => {
   return r.json();
 };
 
-// ── IRC WebSocket partagé ──────────────────────────────────────────────────
+// ── IRC ────────────────────────────────────────────────────────────────────
 function useIRC(token, username) {
   const [subMonths, setSubMonths] = useState(null);
-  const [messages, setMessages]   = useState([]);
+  const [ircMessages, setIrcMessages] = useState([]);
   const [connected, setConnected] = useState(false);
   const wsRef = useRef(null);
+  const usernameRef = useRef(username);
+  useEffect(() => { usernameRef.current = username; }, [username]);
 
   const COLORS = ["#FF4500","#FF69B4","#9ACD32","#00FF7F","#1E90FF","#FF7F50","#DAA520","#8A2BE2","#00CED1","#ADFF2F"];
   const colorFor = (name) => COLORS[name.split("").reduce((a,c)=>a+c.charCodeAt(0),0) % COLORS.length];
@@ -36,9 +37,6 @@ function useIRC(token, username) {
     return str.split(",").map(b=>b.split("/")[0]).filter(Boolean);
   };
 
-  const usernameRef = useRef(username);
-  useEffect(() => { usernameRef.current = username; }, [username]);
-
   useEffect(() => {
     if (!token || !username) return;
     const ws = new WebSocket("wss://irc-ws.chat.twitch.tv");
@@ -52,12 +50,10 @@ function useIRC(token, username) {
     };
 
     ws.onmessage = (e) => {
-      const lines = e.data.split(/\r?\n/).filter(Boolean);
-      lines.forEach(raw => {
+      e.data.split(/\r?\n/).filter(Boolean).forEach(raw => {
         if (raw.startsWith("PING")) { ws.send("PONG :tmi.twitch.tv"); return; }
         if (raw.includes("001") || raw.includes("376")) setConnected(true);
 
-        // Sub months depuis USERSTATE
         if (raw.includes("USERSTATE") && raw.includes(`#${BROADCASTER}`)) {
           const tagStr = raw.startsWith("@") ? raw.slice(1).split(" ")[0] : "";
           if (tagStr) {
@@ -67,7 +63,6 @@ function useIRC(token, username) {
           }
         }
 
-        // Messages chat
         if (raw.includes("PRIVMSG")) {
           let tags = {};
           if (raw.startsWith("@")) tags = parseTags(raw.slice(1).split(" ")[0]);
@@ -75,43 +70,45 @@ function useIRC(token, username) {
           const userMatch = raw.match(/:(\w+)!\w+@/);
           if (!msgMatch || !userMatch) return;
           const displayName = tags["display-name"] || userMatch[1];
-          const color       = tags["color"] || colorFor(displayName);
-          const badges      = parseBadges(tags["badges"]||"");
-          const subMonthsMsg = tags["badge-info"]?.match(/subscriber\/(\d+)/)?.[1];
-          setMessages(prev => [...prev, {
-            id: tags["id"] || Date.now().toString(),
-            displayName, color, badges,
+          // Ignore nos propres messages (déjà ajoutés localement)
+          if (displayName.toLowerCase() === usernameRef.current?.toLowerCase()) return;
+          setIrcMessages(prev => [...prev, {
+            id: tags["id"] || `irc-${Date.now()}-${Math.random()}`,
+            displayName,
+            color: tags["color"] || colorFor(displayName),
+            badges: tags["badges"]||"",
             text: msgMatch[1],
             isMod: tags["mod"]==="1",
-            subMonths: subMonthsMsg,
+            subMonths: tags["badge-info"]?.match(/subscriber\/(\d+)/)?.[1],
+            ts: parseInt(tags["tmi-sent-ts"] || Date.now()),
           }].slice(-150));
         }
 
-        // USERNOTICE = sub/resub/giftsub
         if (raw.includes("USERNOTICE")) {
           let tags = {};
           if (raw.startsWith("@")) tags = parseTags(raw.slice(1).split(" ")[0]);
-          const sysMsg = tags["system-msg"]?.replace(/\\s/g," ") || "";
-          if (sysMsg) setMessages(prev => [...prev, { id: Date.now().toString(), isSystem: true, text: sysMsg }].slice(-150));
+          const sysMsg = tags["system-msg"]?.replace(/\\s/g," ")||"";
+          if (sysMsg) setIrcMessages(prev => [...prev, { id:`sys-${Date.now()}`, isSystem:true, text:sysMsg, ts:Date.now() }].slice(-150));
         }
       });
     };
 
-    ws.onerror   = () => {};
-    ws.onclose   = () => setConnected(false);
-    return () => { try { ws.close(); } catch {} };
+    ws.onerror = () => {};
+    ws.onclose = () => { setConnected(false); };
+    return () => { wsRef.current = null; try { ws.close(); } catch {} };
   }, [token, username]);
 
-  const sendMessage = useCallback((msg) => {
+  const sendIRC = useCallback((msg) => {
     const ws = wsRef.current;
-    if (!msg?.trim()) return;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!msg?.trim() || !ws || ws.readyState !== WebSocket.OPEN) return false;
     ws.send(`PRIVMSG #${BROADCASTER} :${msg.trim()}`);
+    return true;
   }, []);
 
-  return { subMonths, messages, connected, sendMessage, parseBadges };
+  return { subMonths, ircMessages, connected, sendIRC, parseBadges };
 }
 
+// ── BANNER ─────────────────────────────────────────────────────────────────
 function formatSubDuration(months) {
   if (!months) return null;
   if (months < 12) return `${months} mois`;
@@ -128,7 +125,6 @@ function getBannerTier(subMonths, isSub) {
   return 4;
 }
 
-// ── BANNER ─────────────────────────────────────────────────────────────────
 const RANKS = [{name:"Bronze",stars:1},{name:"Silver",stars:2},{name:"Gold",stars:3},{name:"Platinum",stars:4},{name:"Diamond",stars:5}];
 const bannerStyles = [
   { bg:"linear-gradient(135deg,#6B3A1F 0%,#C8956C 45%,#7B4A2F 100%)", border:"2px solid #A06030", shadow:"0 0 10px #5A3010aa,inset 0 1px 0 rgba(255,200,130,0.25)", textColor:"#FFE0A0", textShadow:"1px 2px 6px #3a2010,0 0 10px rgba(200,120,40,0.4)", starColor:"#FFD700", starGlow:"rgba(200,140,60,0.6)", shimmer:false, subColor:"#FFD070" },
@@ -170,7 +166,6 @@ function NameBanner({ username, tier=0, size="md", subDuration=null }) {
 const Icon = {
   Home:   ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>,
   Clips:  ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>,
-  Trophy: ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5C3.9 5 3 5.9 3 7v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V18H7v2h10v-2h-4v-2.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>,
   Shop:   ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3z"/></svg>,
   Heart:  ()=><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
   Star:   ()=><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
@@ -180,86 +175,86 @@ const Icon = {
 };
 
 const TABS = [
-  {id:"home",       label:"Accueil",     IC:Icon.Home},
-  {id:"clips",      label:"Clips",       IC:Icon.Clips},
-  {id:"leaderboard",label:"Leaderboard", IC:Icon.Trophy},
-  {id:"shop",       label:"Boutique",    IC:Icon.Shop},
+  {id:"home",  label:"Accueil", IC:Icon.Home},
+  {id:"clips", label:"Clips",   IC:Icon.Clips},
+  {id:"shop",  label:"Boutique",IC:Icon.Shop},
 ];
 
-// ── TWITCH CHAT ────────────────────────────────────────────────────────────
-function TwitchChat({ messages, connected, sendMessage, parseBadges, userInfo, onLocalMessage }) {
-  const [input, setInput]   = useState("");
-  const bottomRef  = useRef(null);
-  const inputRef   = useRef(null);
+// ── CHAT ───────────────────────────────────────────────────────────────────
+function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) {
+  const [input, setInput] = useState("");
+  const [localMessages, setLocalMessages] = useState([]);
+  const bottomRef = useRef(null);
+  const inputRef  = useRef(null);
+
+  // Fusion IRC + local, triés par ts
+  const allMessages = (() => {
+    const all = [...ircMessages, ...localMessages];
+    all.sort((a,b) => (a.ts||0) - (b.ts||0));
+    return all;
+  })();
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior:"smooth" });
+  }, [allMessages.length]);
 
   const badgeEmoji = (badge) => {
     const map = { broadcaster:"🎙", moderator:"⚔️", subscriber:"⭐", vip:"💎", staff:"🛡", partner:"✅", premium:"👑" };
     return map[badge] || null;
   };
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [messages]);
-
-  const [localMessages, setLocalMessages] = useState([]);
-  const allMessages = useMemo(() => {
-    // Retire les messages locaux qui ont été confirmés par IRC
-    const ircTexts = new Set(messages.map(m => m.text));
-    const filteredLocal = localMessages.filter(m => !ircTexts.has(m.text));
-    const all = [...messages, ...filteredLocal];
-    all.sort((a,b) => (a.ts||0) - (b.ts||0));
-    return all;
-  }, [messages, localMessages]);
-
   const send = () => {
     if (!input.trim() || !connected) return;
-    const now = Date.now();
-    const localMsg = {
-      id: `local-${now}`,
-      ts: now,
-      displayName: userInfo?.display_name || "Moi",
-      color: "#9147ff",
-      badges: "",
-      text: input.trim(),
-      isLocal: true,
-    };
-    setLocalMessages(prev => [...prev, localMsg].slice(-150));
-    sendMessage(input);
-    setInput("");
-    inputRef.current?.focus();
+    const sent = sendIRC(input.trim());
+    if (sent) {
+      // Ajoute localement immédiatement
+      setLocalMessages(prev => [...prev, {
+        id: `local-${Date.now()}`,
+        displayName: userInfo?.display_name || "Moi",
+        color: "#9147ff",
+        badges: "",
+        text: input.trim(),
+        isLocal: true,
+        ts: Date.now(),
+      }].slice(-150));
+      setInput("");
+      inputRef.current?.focus();
+    }
   };
 
   return (
-    <div style={{ borderRadius:14, border:"1px solid rgba(145,71,255,0.25)", display:"flex", flexDirection:"column", height:"100%", minHeight:460, overflow:"hidden", background:"#0e0e18" }}>
-      <div style={{ padding:"10px 14px", background:"rgba(145,71,255,0.12)", borderBottom:"1px solid rgba(145,71,255,0.18)", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+    <div style={{borderRadius:14,border:"1px solid rgba(145,71,255,0.25)",display:"flex",flexDirection:"column",height:"100%",minHeight:460,overflow:"hidden",background:"#0e0e18"}}>
+      <div style={{padding:"10px 14px",background:"rgba(145,71,255,0.12)",borderBottom:"1px solid rgba(145,71,255,0.18)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="#bf94ff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-          <span style={{ fontSize:"0.72rem", fontWeight:700, color:"#bf94ff", letterSpacing:"0.12em", textTransform:"uppercase" }}>Chat live</span>
+          <span style={{fontSize:"0.72rem",fontWeight:700,color:"#bf94ff",letterSpacing:"0.12em",textTransform:"uppercase"}}>Chat live</span>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-          <div style={{ width:7, height:7, borderRadius:"50%", background:connected?"#00e676":"#ff5252", boxShadow:connected?"0 0 6px #00e676":"none" }}/>
-          <span style={{ fontSize:"0.65rem", color:connected?"#00e676":"#ff5252", fontWeight:600 }}>{connected?"Connecté":"Déconnecté"}</span>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{width:7,height:7,borderRadius:"50%",background:connected?"#00e676":"#ff5252",boxShadow:connected?"0 0 6px #00e676":"none"}}/>
+          <span style={{fontSize:"0.65rem",color:connected?"#00e676":"#ff5252",fontWeight:600}}>{connected?"Connecté":"Déconnecté"}</span>
         </div>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", padding:"10px 12px", display:"flex", flexDirection:"column", gap:2 }}>
-        {messages.length === 0 && (
-          <div style={{ color:"#404060", fontSize:"0.8rem", textAlign:"center", marginTop:40 }}>En attente de messages…</div>
+      <div style={{flex:1,overflowY:"auto",padding:"10px 12px",display:"flex",flexDirection:"column",gap:2}}>
+        {allMessages.length === 0 && (
+          <div style={{color:"#404060",fontSize:"0.8rem",textAlign:"center",marginTop:40}}>En attente de messages…</div>
         )}
-        {messages.map(msg => (
+        {allMessages.map(msg => (
           msg.isSystem ? (
-            <div key={msg.id} style={{ background:"rgba(145,71,255,0.12)", border:"1px solid rgba(145,71,255,0.2)", borderRadius:8, padding:"6px 10px", fontSize:"0.78rem", color:"#bf94ff", textAlign:"center", margin:"4px 0" }}>
+            <div key={msg.id} style={{background:"rgba(145,71,255,0.12)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:8,padding:"6px 10px",fontSize:"0.78rem",color:"#bf94ff",textAlign:"center",margin:"4px 0"}}>
               🎉 {msg.text}
             </div>
           ) : (
-            <div key={msg.id} style={{ display:"flex", gap:6, alignItems:"flex-start", padding:"2px 4px", borderRadius:6 }}
+            <div key={msg.id} style={{display:"flex",gap:6,alignItems:"flex-start",padding:"2px 4px",borderRadius:6}}
               onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}
               onMouseLeave={e=>e.currentTarget.style.background=""}>
-              <span style={{ fontSize:"0.7rem", flexShrink:0, paddingTop:1 }}>
-                {parseBadges(typeof msg.badges === "string" ? msg.badges : "").map(b=>badgeEmoji(b)).filter(Boolean).join("")}
+              <span style={{fontSize:"0.7rem",flexShrink:0,paddingTop:1}}>
+                {parseBadges(typeof msg.badges==="string"?msg.badges:"").map(b=>badgeEmoji(b)).filter(Boolean).join("")}
               </span>
-              <div style={{ flex:1, fontSize:"0.82rem", lineHeight:1.45, wordBreak:"break-word" }}>
-                <span style={{ color:msg.color, fontWeight:700, marginRight:4 }}>{msg.displayName}</span>
-                {msg.subMonths && <span style={{ fontSize:"0.62rem", color:"#9147ff", background:"rgba(145,71,255,0.15)", borderRadius:4, padding:"1px 4px", marginRight:4 }}>{msg.subMonths}m</span>}
-                <span style={{ color:"#d0c8e8" }}>: {msg.text}</span>
+              <div style={{flex:1,fontSize:"0.82rem",lineHeight:1.45,wordBreak:"break-word"}}>
+                <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
+                {msg.subMonths&&<span style={{fontSize:"0.62rem",color:"#9147ff",background:"rgba(145,71,255,0.15)",borderRadius:4,padding:"1px 4px",marginRight:4}}>{msg.subMonths}m</span>}
+                <span style={{color: msg.isLocal ? "#c0b0ff" : "#d0c8e8"}}>: {msg.text}</span>
               </div>
             </div>
           )
@@ -267,16 +262,16 @@ function TwitchChat({ messages, connected, sendMessage, parseBadges, userInfo, o
         <div ref={bottomRef}/>
       </div>
 
-      <div style={{ padding:"10px 12px", borderTop:"1px solid rgba(145,71,255,0.15)", display:"flex", gap:8, flexShrink:0, background:"rgba(0,0,0,0.2)" }}>
+      <div style={{padding:"10px 12px",borderTop:"1px solid rgba(145,71,255,0.15)",display:"flex",gap:8,flexShrink:0,background:"rgba(0,0,0,0.2)"}}>
         <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&send()}
           placeholder={connected?"Envoyer un message…":"Connexion…"}
           disabled={!connected} maxLength={500}
-          style={{ flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(145,71,255,0.2)", borderRadius:8, padding:"8px 12px", color:"#e0d0ff", fontSize:"0.83rem", outline:"none", transition:"border-color 0.2s", fontFamily:"inherit" }}
+          style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:8,padding:"8px 12px",color:"#e0d0ff",fontSize:"0.83rem",outline:"none",transition:"border-color 0.2s",fontFamily:"inherit"}}
           onFocus={e=>e.target.style.borderColor="rgba(145,71,255,0.6)"}
           onBlur={e=>e.target.style.borderColor="rgba(145,71,255,0.2)"}
         />
-        <button onClick={send} disabled={!connected||!input.trim()} style={{ background:connected&&input.trim()?"linear-gradient(135deg,#9147ff,#6020c0)":"rgba(255,255,255,0.05)", border:"none", borderRadius:8, padding:"8px 14px", color:connected&&input.trim()?"#fff":"#404060", cursor:connected&&input.trim()?"pointer":"not-allowed", transition:"all 0.2s" }}>
+        <button onClick={send} disabled={!connected||!input.trim()} style={{background:connected&&input.trim()?"linear-gradient(135deg,#9147ff,#6020c0)":"rgba(255,255,255,0.05)",border:"none",borderRadius:8,padding:"8px 14px",color:connected&&input.trim()?"#fff":"#404060",cursor:connected&&input.trim()?"pointer":"not-allowed",transition:"all 0.2s"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
@@ -284,34 +279,25 @@ function TwitchChat({ messages, connected, sendMessage, parseBadges, userInfo, o
   );
 }
 
+// ── ACTIVITY TICKER ────────────────────────────────────────────────────────
 function ActivityTicker({ token }) {
   const [items, setItems] = useState([]);
-  const trackRef = useRef(null);
-
   useEffect(() => {
     if (!token) return;
     fetch(`${window.location.origin}/api/recent-activity`)
-      .then(r => r.json())
-      .then(d => {
-        const list = d.data || [];
-        if (list.length > 0) setItems([...list, ...list]); // dupliquer pour scroll infini
-      })
-      .catch(() => {});
+      .then(r=>r.json()).then(d=>{ const l=d.data||[]; if(l.length>0) setItems([...l,...l]); }).catch(()=>{});
   }, [token]);
-
   if (items.length === 0) return null;
-
   return (
     <div style={{position:"relative",overflow:"hidden",background:"rgba(145,71,255,0.06)",border:"1px solid rgba(145,71,255,0.15)",borderRadius:12,padding:"12px 0",marginTop:16}}>
-      {/* Fade left/right */}
       <div style={{position:"absolute",left:0,top:0,bottom:0,width:80,background:"linear-gradient(to right,#0e0e10,transparent)",zIndex:2,pointerEvents:"none"}}/>
       <div style={{position:"absolute",right:0,top:0,bottom:0,width:80,background:"linear-gradient(to left,#0e0e10,transparent)",zIndex:2,pointerEvents:"none"}}/>
       <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6,padding:"0 20px"}}>
         <span style={{fontSize:"0.68rem",color:"#605080",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em"}}>Activité récente</span>
         <div style={{flex:1,height:1,background:"rgba(145,71,255,0.15)"}}/>
       </div>
-      <div ref={trackRef} style={{display:"flex",gap:12,padding:"4px 20px",animation:"ticker 90s linear infinite",width:"max-content"}}>
-        {items.map((item, i) => (
+      <div style={{display:"flex",gap:12,padding:"4px 20px",animation:"ticker 90s linear infinite",width:"max-content"}}>
+        {items.map((item,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(145,71,255,0.1)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:20,padding:"5px 14px",whiteSpace:"nowrap",flexShrink:0}}>
             <span style={{fontSize:"0.85rem"}}>{item.icon}</span>
             <span style={{color:"#e0d0ff",fontWeight:700,fontSize:"0.82rem"}}>{item.name}</span>
@@ -324,15 +310,14 @@ function ActivityTicker({ token }) {
 }
 
 // ── HOME ───────────────────────────────────────────────────────────────────
-function HomePage({ token, userInfo, messages, connected, sendMessage, parseBadges }) {
+function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadges }) {
   const [stats, setStats] = useState({followers:null,subs:null});
-
   useEffect(() => {
     if (!token) return;
     Promise.all([
-      twitchGet("/channels/followers", token, {broadcaster_id:BROADCASTER_ID,first:1}),
-      twitchGet("/subscriptions", token, {broadcaster_id:BROADCASTER_ID,first:1}).catch(()=>({total:null})),
-    ]).then(([f,s]) => setStats({followers:f.total??null,subs:s.total??null})).catch(()=>{});
+      twitchGet("/channels/followers",token,{broadcaster_id:BROADCASTER_ID,first:1}),
+      twitchGet("/subscriptions",token,{broadcaster_id:BROADCASTER_ID,first:1}).catch(()=>({total:null})),
+    ]).then(([f,s])=>setStats({followers:f.total??null,subs:s.total??null})).catch(()=>{});
   }, [token]);
 
   return (
@@ -342,10 +327,8 @@ function HomePage({ token, userInfo, messages, connected, sendMessage, parseBadg
           <iframe src={`https://player.twitch.tv/?channel=${BROADCASTER}&parent=${window.location.hostname}&autoplay=false`}
             height="100%" width="100%" style={{display:"block",minHeight:420,border:"none"}} allowFullScreen/>
         </div>
-        <TwitchChat messages={messages} connected={connected} sendMessage={sendMessage} parseBadges={parseBadges} userInfo={userInfo} />
+        <TwitchChat ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges} userInfo={userInfo}/>
       </div>
-
-      {/* Stats */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         <StatCard icon={<Icon.Users/>} label="Followers" value={stats.followers!==null?stats.followers.toLocaleString("fr-FR"):"…"} color="#9147ff"/>
         <StatCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs!==null?stats.subs.toLocaleString("fr-FR"):"—"} color="#f59e0b"/>
@@ -359,8 +342,6 @@ function HomePage({ token, userInfo, messages, connected, sendMessage, parseBadg
           </a>
         </div>
       </div>
-
-      {/* Activity ticker */}
       <ActivityTicker token={token}/>
     </div>
   );
@@ -450,143 +431,6 @@ function ClipCard({clip}) {
   );
 }
 
-// ── LEADERBOARD ────────────────────────────────────────────────────────────
-function LeaderboardPage({ token, userInfo, isFollower, isSub, subMonths }) {
-  const [subs, setSubs]     = useState([]);
-  const [bits, setBits]     = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!token) return;
-    const base = window.location.origin;
-    Promise.all([
-      fetch(`${base}/api/leaderboard-subs`).then(r=>r.json()).then(d=>setSubs(d.data||[])).catch(()=>{}),
-      fetch(`${base}/api/bits`).then(r=>r.json()).then(d=>setBits(d.data||[])).catch(()=>{}),
-    ]).finally(() => setLoading(false));
-  }, [token]);
-
-  const monthsToBanner = (months) => getBannerTier(months, true);
-
-  // Bits rank → bannière
-  const bitsToBanner = (rank) => {
-    if (rank === 0) return 4; // Diamond #1
-    if (rank === 1) return 3; // Platinum #2
-    if (rank <= 4)  return 2; // Gold top 5
-    if (rank <= 9)  return 1; // Silver top 10
-    return 0;                  // Bronze reste
-  };
-
-  return (
-    <div>
-      {!isFollower && userInfo && (
-        <div style={{ background:"rgba(255,80,80,0.08)", border:"1px solid rgba(255,80,80,0.25)", borderRadius:12, padding:"14px 20px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ color:"#ff9090", fontSize:"0.88rem" }}>Tu ne suis pas encore <strong style={{ color:"#fff" }}>Daems_</strong> !</span>
-          <a href="https://www.twitch.tv/daems_" target="_blank" rel="noreferrer"
-            style={{ background:"linear-gradient(135deg,#e91916,#900)", color:"#fff", padding:"7px 18px", borderRadius:20, fontWeight:700, textDecoration:"none", animation:"pulse 1.5s infinite", fontSize:"0.82rem" }}>Suivre 💜</a>
-        </div>
-      )}
-      {!isSub && userInfo && (
-        <div style={{ background:"rgba(145,71,255,0.08)", border:"1px solid rgba(145,71,255,0.25)", borderRadius:12, padding:"14px 20px", marginBottom:22, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ color:"#bf94ff", fontSize:"0.88rem" }}>Rejoins les abonnés de <strong style={{ color:"#fff" }}>Daems_</strong> !</span>
-          <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
-            style={{ background:"linear-gradient(135deg,#9147ff,#5010b0)", color:"#fff", padding:"7px 18px", borderRadius:20, fontWeight:700, textDecoration:"none", animation:"pulse 1.5s infinite", fontSize:"0.82rem" }}>S'abonner ⭐</a>
-        </div>
-      )}
-
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:28 }}>
-        {/* TOP SUBS */}
-        <div>
-          <h3 style={{ color:"#e0d0ff", fontWeight:700, marginBottom:18, fontSize:"0.85rem", textTransform:"uppercase", letterSpacing:"0.1em", display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ color:"#f59e0b" }}><Icon.Star /></span> Top 20 Abonnés
-          </h3>
-          {loading ? <LoadSpinner /> : subs.length === 0 ? (
-            <p style={{ color:"#505070", fontSize:"0.82rem" }}>En attente du token broadcaster…</p>
-          ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {subs.map((s, i) => {
-                const bTier = monthsToBanner(s.sub_months);
-                const bs    = bannerStyles[bTier];
-                const isMe  = userInfo?.id === s.user_id;
-                const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":null;
-                const duration = formatSubDuration(s.sub_months);
-                return (
-                  <div key={s.user_id} style={{
-                    display:"flex", alignItems:"center", gap:12, padding:"8px 12px",
-                    borderRadius:11, background: isMe ? "rgba(145,71,255,0.12)" : "rgba(255,255,255,0.02)",
-                    border: `1px solid ${isMe ? "rgba(145,71,255,0.4)" : "rgba(255,255,255,0.05)"}`,
-                  }}>
-                    <span style={{ width:28, textAlign:"center", fontSize:"0.8rem", color:"#505070", fontWeight:700, flexShrink:0 }}>{medal||`#${i+1}`}</span>
-                    {/* Mini bannière */}
-                    <div style={{
-                      position:"relative", flexShrink:0,
-                      background:bs.bg, border:bs.border, borderRadius:7,
-                      boxShadow:bs.shadow, padding:"3px 12px",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      minWidth:110, height:28, overflow:"hidden",
-                    }}>
-                      {bs.shimmer && <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.12) 50%,transparent 62%)", animation:"shimmer 2.5s infinite" }}/>}
-                      <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{s.display_name}</span>
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:"0.68rem", color: bs.subColor, fontFamily:"monospace", letterSpacing:"0.08em" }}>
-                        ⭐ {duration}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* TOP BITS */}
-        <div>
-          <h3 style={{ color:"#e0d0ff", fontWeight:700, marginBottom:18, fontSize:"0.85rem", textTransform:"uppercase", letterSpacing:"0.1em", display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ color:"#9147ff" }}>💜</span> Top 20 Bits
-          </h3>
-          {loading ? <LoadSpinner /> : bits.length === 0 ? (
-            <p style={{ color:"#505070", fontSize:"0.82rem" }}>Aucune donnée de bits disponible.</p>
-          ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {bits.map((b, i) => {
-                const bTier = bitsToBanner(i);
-                const bs    = bannerStyles[bTier];
-                const isMe  = userInfo?.id === b.user_id;
-                const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":null;
-                return (
-                  <div key={b.user_id} style={{
-                    display:"flex", alignItems:"center", gap:12, padding:"8px 12px",
-                    borderRadius:11, background: isMe ? "rgba(145,71,255,0.12)" : "rgba(255,255,255,0.02)",
-                    border: `1px solid ${isMe ? "rgba(145,71,255,0.4)" : "rgba(255,255,255,0.05)"}`,
-                  }}>
-                    <span style={{ width:28, textAlign:"center", fontSize:"0.8rem", color:"#505070", fontWeight:700, flexShrink:0 }}>{medal||`#${i+1}`}</span>
-                    {/* Mini bannière */}
-                    <div style={{
-                      position:"relative", flexShrink:0,
-                      background:bs.bg, border:bs.border, borderRadius:7,
-                      boxShadow:bs.shadow, padding:"3px 12px",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      minWidth:110, height:28, overflow:"hidden",
-                    }}>
-                      {bs.shimmer && <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.12) 50%,transparent 62%)", animation:"shimmer 2.5s infinite" }}/>}
-                      <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{b.user_name}</span>
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <span style={{ fontSize:"0.72rem", color:"#9147ff", fontWeight:700 }}>
-                        💜 {b.score.toLocaleString("fr-FR")} bits
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── SHOP ───────────────────────────────────────────────────────────────────
 function ShopPage() {
   return (
@@ -643,29 +487,22 @@ function TwitchSVG() {
   );
 }
 
-// ── AVATAR DROPDOWN ────────────────────────────────────────────────────────
 function AvatarMenu({userInfo, isFollower, isSub, subMonths, onLogout}) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, []);
-
   return (
     <div ref={ref} style={{position:"relative"}}>
       <button onClick={()=>setOpen(o=>!o)} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center",gap:8}}>
         <img src={userInfo.profile_image_url} alt="" style={{width:36,height:36,borderRadius:"50%",border:`2px solid ${open?"#9147ff":"rgba(145,71,255,0.4)"}`,transition:"border-color 0.2s",boxShadow:open?"0 0 12px rgba(145,71,255,0.5)":"none"}}/>
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#606080" style={{transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform 0.2s"}}>
-          <path d="M7 10l5 5 5-5z"/>
-        </svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#606080" style={{transform:open?"rotate(180deg)":"",transition:"transform 0.2s"}}><path d="M7 10l5 5 5-5z"/></svg>
       </button>
-
       {open&&(
         <div style={{position:"absolute",right:0,top:"calc(100% + 10px)",width:220,background:"#1a1a2e",border:"1px solid rgba(145,71,255,0.25)",borderRadius:14,boxShadow:"0 16px 40px rgba(0,0,0,0.6)",zIndex:200,overflow:"hidden",animation:"fadeIn 0.15s ease"}}>
-          {/* User info header */}
           <div style={{padding:"14px 16px",borderBottom:"1px solid rgba(145,71,255,0.15)",background:"rgba(145,71,255,0.08)"}}>
             <div style={{color:"#fff",fontWeight:700,fontSize:"0.9rem"}}>{userInfo.display_name}</div>
             <div style={{display:"flex",gap:5,marginTop:6}}>
@@ -673,17 +510,15 @@ function AvatarMenu({userInfo, isFollower, isSub, subMonths, onLogout}) {
               {isSub&&<Badge color="#9147ff"><Icon.Star/>Sub {subMonths?`· ${subMonths}m`:""}</Badge>}
             </div>
           </div>
-          {/* Menu items */}
           <div style={{padding:"6px 0"}}>
             <a href={`https://www.twitch.tv/${userInfo.login}`} target="_blank" rel="noreferrer"
-              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",color:"#c0b0e0",textDecoration:"none",fontSize:"0.85rem",transition:"background 0.15s"}}
+              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",color:"#c0b0e0",textDecoration:"none",fontSize:"0.85rem"}}
               onMouseEnter={e=>e.currentTarget.style.background="rgba(145,71,255,0.1)"}
               onMouseLeave={e=>e.currentTarget.style.background=""}>
-              <svg width="14" height="14" viewBox="0 0 24 28" fill="currentColor"><path d="M2.149 0L0 6.229v19.264h6.857V28l3.429-2.507h4.571L24 19.029V0H2.149zm19.429 17.657l-3.428 2.507H13.5l-3.429 2.507v-2.507H4.571V2.507H21.578v15.15zm-3.428-9.921v7.171h-2.286v-7.17h2.286zm-5.714 0v7.171H10.15v-7.17h2.286z"/></svg>
-              Voir mon profil Twitch
+              <TwitchSVG/> Voir mon profil Twitch
             </a>
             <div style={{height:1,background:"rgba(145,71,255,0.1)",margin:"4px 0"}}/>
-            <button onClick={()=>{setOpen(false);onLogout();}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",color:"#ff6060",background:"none",border:"none",cursor:"pointer",fontSize:"0.85rem",width:"100%",textAlign:"left",transition:"background 0.15s"}}
+            <button onClick={()=>{setOpen(false);onLogout();}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",color:"#ff6060",background:"none",border:"none",cursor:"pointer",fontSize:"0.85rem",width:"100%",textAlign:"left"}}
               onMouseEnter={e=>e.currentTarget.style.background="rgba(255,60,60,0.1)"}
               onMouseLeave={e=>e.currentTarget.style.background=""}>
               <Icon.Logout/> Se déconnecter
@@ -695,7 +530,6 @@ function AvatarMenu({userInfo, isFollower, isSub, subMonths, onLogout}) {
   );
 }
 
-// ── LOGIN ──────────────────────────────────────────────────────────────────
 function LoginPage({onLogin}) {
   return (
     <div style={{...appStyle,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
@@ -716,7 +550,6 @@ function LoginPage({onLogin}) {
   );
 }
 
-// ── LOGO ───────────────────────────────────────────────────────────────────
 function DaemsLogo({size="md"}) {
   const fs = size==="lg"?"2.4rem":size==="header"?"1.8rem":"1.35rem";
   return (
@@ -730,16 +563,25 @@ function DaemsLogo({size="md"}) {
 
 // ── MAIN ───────────────────────────────────────────────────────────────────
 export default function App() {
-  const [token,setToken]       = useState(()=>localStorage.getItem("tw_token"));
-  const [userInfo,setUserInfo] = useState(null);
+  const [token,setToken]           = useState(()=>localStorage.getItem("tw_token"));
+  const [userInfo,setUserInfo]     = useState(null);
   const [isFollower,setIsFollower] = useState(false);
-  const [isSub,setIsSub]       = useState(false);
-  const [tab,setTab]           = useState("home");
-  const [booting,setBooting]   = useState(true);
+  const [isSub,setIsSub]           = useState(false);
+  const [tab,setTab]               = useState("home");
+  const [booting,setBooting]       = useState(true);
 
-  const { subMonths, messages, connected, sendMessage, parseBadges } = useIRC(token, userInfo?.login);
+  const { subMonths, ircMessages, connected, sendIRC, parseBadges } = useIRC(token, userInfo?.login);
   const subDuration = isSub ? formatSubDuration(subMonths) : null;
   const bannerTier  = getBannerTier(subMonths, isSub);
+
+  const login = () => {
+    window.location.href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&force_verify=false`;
+  };
+
+  const logout = () => {
+    localStorage.removeItem("tw_token");
+    setToken(null); setUserInfo(null); setIsFollower(false); setIsSub(false);
+  };
 
   useEffect(()=>{
     const hash=window.location.hash;
@@ -765,55 +607,31 @@ export default function App() {
       .finally(()=>setBooting(false));
   },[token]);
 
-  // Sauvegarde les données du viewer dans KV quand on a tout
   useEffect(() => {
     if (!token || !userInfo || subMonths === null) return;
     fetch(`${window.location.origin}/api/store-viewer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token,
-        user_id:      userInfo.id,
-        display_name: userInfo.display_name,
-        sub_months:   subMonths,
-        is_sub:       isSub,
-      }),
-    }).catch(() => {});
+      body: JSON.stringify({ token, user_id: userInfo.id, display_name: userInfo.display_name, sub_months: subMonths, is_sub: isSub }),
+    }).catch(()=>{});
   }, [token, userInfo?.id, subMonths, isSub]);
-  const logout=()=>{localStorage.removeItem("tw_token");setToken(null);setUserInfo(null);setIsFollower(false);setIsSub(false);};
 
-  if(!token)return<LoginPage onLogin={login}/>;
-  if(booting)return<div style={{...appStyle,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><style>{CSS}</style><LoadSpinner/></div>;
+  if(!token) return <LoginPage onLogin={login}/>;
+  if(booting) return <div style={{...appStyle,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><style>{CSS}</style><LoadSpinner/></div>;
 
   return (
     <div style={appStyle}>
       <style>{CSS}</style>
-
       <header style={headerStyle}>
-        {/* Logo agrandi */}
         <DaemsLogo size="header"/>
-
-        {/* Nav */}
         <nav style={{display:"flex",gap:4}}>
           {TABS.map(({id,label,IC})=>(
-            <button key={id} onClick={()=>setTab(id)} style={{
-              padding:"8px 18px",borderRadius:10,border:"none",cursor:"pointer",
-              fontWeight:tab===id?700:500,fontSize:"0.85rem",
-              background:tab===id?"rgba(145,71,255,0.25)":"rgba(255,255,255,0.04)",
-              color:tab===id?"#e8d8ff":"#706090",
-              borderBottom:`2px solid ${tab===id?"#9147ff":"transparent"}`,
-              transition:"all 0.15s",display:"flex",alignItems:"center",gap:7,
-              boxShadow:tab===id?"0 2px 12px rgba(145,71,255,0.2)":"none",
-            }}
+            <button key={id} onClick={()=>setTab(id)} style={{padding:"8px 18px",borderRadius:10,border:"none",cursor:"pointer",fontWeight:tab===id?700:500,fontSize:"0.85rem",background:tab===id?"rgba(145,71,255,0.25)":"rgba(255,255,255,0.04)",color:tab===id?"#e8d8ff":"#706090",borderBottom:`2px solid ${tab===id?"#9147ff":"transparent"}`,transition:"all 0.15s",display:"flex",alignItems:"center",gap:7,boxShadow:tab===id?"0 2px 12px rgba(145,71,255,0.2)":"none"}}
               onMouseEnter={e=>{if(tab!==id)e.currentTarget.style.background="rgba(145,71,255,0.1)";}}
               onMouseLeave={e=>{if(tab!==id)e.currentTarget.style.background="rgba(255,255,255,0.04)";}}
-            >
-              <IC/>{label}
-            </button>
+            ><IC/>{label}</button>
           ))}
         </nav>
-
-        {/* Right — bannière + avatar menu */}
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           {userInfo&&(
             <>
@@ -823,25 +641,17 @@ export default function App() {
           )}
         </div>
       </header>
-
-      <main style={{paddingTop:80,padding:"96px 28px 48px",maxWidth:1280,margin:"0 auto",width:"100%"}}>
-        {tab==="home"        &&<HomePage token={token} userInfo={userInfo} messages={messages} connected={connected} sendMessage={sendMessage} parseBadges={parseBadges}/>}
-        {tab==="clips"       &&<ClipsPage token={token}/>}
-        {tab==="shop"        &&<ShopPage/>}
+      <main style={{padding:"96px 28px 48px",maxWidth:1280,margin:"0 auto",width:"100%"}}>
+        {tab==="home"  && <HomePage token={token} userInfo={userInfo} ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges}/>}
+        {tab==="clips" && <ClipsPage token={token}/>}
+        {tab==="shop"  && <ShopPage/>}
       </main>
     </div>
   );
 }
 
 const appStyle={background:"#0e0e10",minHeight:"100vh",color:"#efeff1",fontFamily:"'Inter','Segoe UI',sans-serif"};
-const headerStyle={
-  position:"fixed",top:0,left:0,right:0,zIndex:100,height:74,
-  background:"rgba(10,10,18,0.96)",backdropFilter:"blur(24px)",
-  borderBottom:"1px solid rgba(145,71,255,0.2)",
-  display:"flex",alignItems:"center",justifyContent:"space-between",
-  padding:"0 28px",boxShadow:"0 4px 30px rgba(0,0,0,0.5)",
-};
-
+const headerStyle={position:"fixed",top:0,left:0,right:0,zIndex:100,height:74,background:"rgba(10,10,18,0.96)",backdropFilter:"blur(24px)",borderBottom:"1px solid rgba(145,71,255,0.2)",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 28px",boxShadow:"0 4px 30px rgba(0,0,0,0.5)"};
 const CSS=`
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
