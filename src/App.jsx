@@ -390,12 +390,15 @@ function LeaderboardPage({ token, userInfo, isFollower, isSub }) {
 
   useEffect(() => {
     if (!token) return;
+    const base = window.location.origin;
     Promise.all([
-      twitchGet("/channels/followers", token, { broadcaster_id: BROADCASTER_ID, first: 100 })
-        .then(f => setFollowers((f.data||[]).sort((a,b) => new Date(a.followed_at)-new Date(b.followed_at))))
+      fetch(`${base}/api/followers`)
+        .then(r => r.json())
+        .then(f => setFollowers(f.data || []))
         .catch(() => {}),
-      twitchGet("/subscriptions", token, { broadcaster_id: BROADCASTER_ID, first: 100 })
-        .then(s => setSubs((s.data||[]).filter(x => x.user_id !== BROADCASTER_ID)))
+      fetch(`${base}/api/subscribers`)
+        .then(r => r.json())
+        .then(s => setSubs(s.data || []))
         .catch(() => {}),
     ]).finally(() => setLoading(false));
   }, [token]);
