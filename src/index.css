@@ -115,6 +115,13 @@ a { color: inherit; }
   justify-content: space-between;
   padding: 0 28px;
   box-shadow: 0 4px 30px rgba(0,0,0,0.55);
+  overflow: visible;
+}
+
+.header-logo {
+  position: relative;
+  z-index: 101;
+  flex-shrink: 0;
 }
 
 .app-main {
