@@ -362,13 +362,13 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         <StatCard icon={<Icon.Users/>} label="Followers" value={stats.followers!==null?stats.followers.toLocaleString("fr-FR"):"…"} color="#9147ff"/>
         <StatCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs!==null?stats.subs.toLocaleString("fr-FR"):"—"} color="#f59e0b"/>
-        <div style={{background:"linear-gradient(135deg,rgba(145,71,255,0.12),rgba(60,20,120,0.2))",border:"1px solid rgba(145,71,255,0.25)",borderRadius:12,padding:"18px 20px",display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
-          <div style={{color:"#bf94ff",display:"flex",alignItems:"center",gap:6}}>
-            <Icon.Gift/><span style={{fontSize:"0.72rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em"}}>Offrir un abonnement</span>
-          </div>
-          <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
-            style={{background:"linear-gradient(135deg,#9147ff,#6020c0)",color:"#fff",borderRadius:8,padding:"10px 24px",fontWeight:700,textDecoration:"none",fontSize:"0.85rem",boxShadow:"0 4px 18px rgba(145,71,255,0.4)",animation:"pulse 2s infinite",display:"inline-block"}}>
-            💜 Gift Sub
+        <div style={{animation:"giftFloat 3.5s ease-in-out infinite"}}>
+          <a href={`https://www.twitch.tv/subs/${BROADCASTER}?gifting=1`} target="_blank" rel="noreferrer"
+            style={{display:"block",borderRadius:12,overflow:"hidden",cursor:"pointer",textDecoration:"none",boxShadow:"0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)",transition:"transform 0.25s, box-shadow 0.25s"}}
+            onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.05)";e.currentTarget.style.boxShadow="0 0 30px rgba(145,71,255,0.9), 0 0 16px rgba(255,140,0,0.65)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)";}}
+          >
+            <img src="/racoonsubgift.png" alt="Offrir un sub" style={{width:"100%",display:"block",borderRadius:12}}/>
           </a>
         </div>
       </div>
@@ -696,4 +696,5 @@ const CSS=`
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
   @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes giftFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 `;
