@@ -4,6 +4,8 @@ const CLIENT_ID      = "mk16oce917g7q5i485zlyackq33ce0";
 const REDIRECT_URI   = window.location.origin;
 const BROADCASTER    = "daems_";
 const BROADCASTER_ID = "441069979";
+const GOAL_FOLLOWERS = 600;
+const GOAL_SUBS      = 50;
 const SCOPES = ["user:read:email","user:read:follows","user:read:subscriptions","chat:read","chat:edit"].join(" ");
 
 const twitchGet = async (path, token, params = {}) => {
@@ -359,16 +361,18 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
         </div>
         <TwitchChat ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges} userInfo={userInfo}/>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
-        <StatCard icon={<Icon.Users/>} label="Followers" value={stats.followers!==null?stats.followers.toLocaleString("fr-FR"):"…"} color="#9147ff"/>
-        <StatCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs!==null?stats.subs.toLocaleString("fr-FR"):"—"} color="#f59e0b"/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,columnGap:28,alignItems:"stretch"}}>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <GoalCard icon={<Icon.Users/>} label="Followers" value={stats.followers} goal={GOAL_FOLLOWERS} color="#9147ff"/>
+          <GoalCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs}      goal={GOAL_SUBS}      color="#f59e0b"/>
+        </div>
         <div style={{animation:"giftFloat 3.5s ease-in-out infinite"}}>
           <a href={`https://www.twitch.tv/subs/${BROADCASTER}?gifting=1`} target="_blank" rel="noreferrer"
             style={{display:"block",borderRadius:12,overflow:"hidden",cursor:"pointer",textDecoration:"none",boxShadow:"0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)",transition:"transform 0.25s, box-shadow 0.25s"}}
             onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.05)";e.currentTarget.style.boxShadow="0 0 30px rgba(145,71,255,0.9), 0 0 16px rgba(255,140,0,0.65)";}}
             onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)";}}
           >
-            <img src="/racoonsubgift.png" alt="Offrir un sub" style={{width:"100%",display:"block",borderRadius:12}}/>
+            <img src="/racoonsubgift.png" alt="Offrir un sub" style={{width:"100%",height:"100%",objectFit:"cover",display:"block",borderRadius:12}}/>
           </a>
         </div>
       </div>
@@ -377,13 +381,29 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
   );
 }
 
-function StatCard({icon,label,value,color}) {
+function GoalCard({icon,label,value,goal,color}) {
+  const current = value ?? 0;
+  const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0;
+  const pctDisplay = Math.round(pct);
   return (
-    <div style={{background:`linear-gradient(135deg,${color}14,${color}06)`,border:`1px solid ${color}38`,borderRadius:12,padding:"18px 20px",display:"flex",alignItems:"center",gap:14}}>
-      <div style={{color,opacity:0.9}}>{icon}</div>
-      <div>
-        <div style={{fontSize:"1.5rem",fontWeight:800,color:"#fff"}}>{value}</div>
-        <div style={{fontSize:"0.7rem",color:"#8080a0",textTransform:"uppercase",letterSpacing:"0.1em"}}>{label}</div>
+    <div style={{background:`linear-gradient(135deg,${color}12,${color}05)`,border:`1px solid ${color}30`,borderRadius:12,padding:"14px 18px",flex:1}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <div style={{color,opacity:0.85}}>{icon}</div>
+          <span style={{fontSize:"0.68rem",color:"#8080a0",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600}}>{label}</span>
+        </div>
+        <div>
+          <span style={{fontSize:"1.3rem",fontWeight:800,color:"#fff",lineHeight:1}}>{value !== null ? value.toLocaleString("fr-FR") : "…"}</span>
+          <span style={{fontSize:"0.72rem",color:"#50506a",fontWeight:500}}>{" /"}{goal.toLocaleString("fr-FR")}</span>
+        </div>
+      </div>
+      <div style={{position:"relative",height:10,background:"rgba(255,255,255,0.06)",borderRadius:99,overflow:"hidden"}}>
+        <div style={{position:"absolute",left:0,top:0,bottom:0,width:`${pct}%`,background:`linear-gradient(90deg,${color}60,${color})`,borderRadius:99,boxShadow:`0 0 10px ${color}80`,transition:"width 1.2s cubic-bezier(.4,0,.2,1)"}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 38%,rgba(255,255,255,0.1) 50%,transparent 62%)",animation:"shimmer 2.8s infinite"}}/>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
+        <span style={{fontSize:"0.6rem",color:"#40405a"}}>{value !== null ? value.toLocaleString("fr-FR") : "…"}&thinsp;/&thinsp;{goal.toLocaleString("fr-FR")}</span>
+        <span style={{fontSize:"0.65rem",fontWeight:700,color:pct>=90?color:"#50506a",letterSpacing:"0.04em"}}>{pctDisplay}%</span>
       </div>
     </div>
   );
