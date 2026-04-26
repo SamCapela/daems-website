@@ -522,7 +522,7 @@ function LeaderboardPage({ token, userInfo, isFollower, isSub, subMonths }) {
                       minWidth:110, height:28, overflow:"hidden",
                     }}>
                       {bs.shimmer && <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.12) 50%,transparent 62%)", animation:"shimmer 2.5s infinite" }}/>}
-                      <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{s.user_name}</span>
+                      <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{s.display_name}</span>
                     </div>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:"0.68rem", color: bs.subColor, fontFamily:"monospace", letterSpacing:"0.08em" }}>
