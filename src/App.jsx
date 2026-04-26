@@ -106,6 +106,17 @@ function useIRC(token, username) {
     return true;
   }, []);
 
+  // DEBUG ONLY
+  useEffect(() => {
+    window.__testMsg = (name = "TestUser", text = "Salut le stream !", asSub = false) =>
+      setIrcMessages(prev => [...prev, {
+        id: `test-${Date.now()}`, displayName: name,
+        color: "#FF4500", badges: asSub ? "subscriber/0" : "", text,
+        subMonths: asSub ? "3" : null, ts: Date.now(),
+      }].slice(-150));
+    return () => { delete window.__testMsg; };
+  }, []);
+
   return { subMonths, ircMessages, connected, sendIRC, parseBadges };
 }
 
