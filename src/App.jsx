@@ -655,8 +655,8 @@ function ShopPage() {
             <span style={{fontSize:"0.78rem",color:"#f97316",fontWeight:700,letterSpacing:"0.06em"}}>Coming soon</span>
           </div>
         </div>
-        <div style={{animation:"raccoonFloat 4s ease-in-out infinite",filter:"drop-shadow(0 10px 20px rgba(124,58,237,0.25))"}}>
-          <RaccoonMascot size={140}/>
+        <div style={{animation:"raccoonFloat 4s ease-in-out infinite",filter:"drop-shadow(0 10px 24px rgba(124,58,237,0.35))"}}>
+          <img src="/logo-round.png" alt="daems_" style={{width:148,height:148,objectFit:"contain",display:"block"}}/>
         </div>
       </div>
 
@@ -822,7 +822,7 @@ export default function App() {
   return (
     <div className="app-wrapper">
       <header className="app-header">
-        <DaemsLogo size="header"/>
+        <img src="/logo-daems.png" alt="daems_" style={{height:58,objectFit:"contain",display:"block"}}/>
         <nav className="app-nav">
           {TABS.map(({id,label,IC})=>(
             <button key={id} onClick={()=>setTab(id)} className={`nav-tab${tab===id?" active":""}`}>
