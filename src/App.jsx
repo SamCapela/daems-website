@@ -131,21 +131,13 @@ function ActivityTicker({ token }) {
 
   useEffect(() => {
     if (!token) return;
-    Promise.all([
-      twitchGet("/subscriptions", token, { broadcaster_id: BROADCASTER_ID, first: 20 }).catch(()=>({data:[]})),
-    ]).then(([subs]) => {
-      const subItems = (subs.data||[])
-        .filter(s => s.user_id !== BROADCASTER_ID)
-        .map(s => ({
-          type: "sub",
-          name: s.user_name,
-          label: s.is_gift ? "Gift Sub" : `Sub Tier ${s.tier?.[0]||1}`,
-          color: "#9147ff",
-          icon: "⭐",
-        }));
-      // Dupliquer pour le scroll infini
-      setItems([...subItems, ...subItems]);
-    });
+    fetch(`${window.location.origin}/api/recent-activity`)
+      .then(r => r.json())
+      .then(d => {
+        const list = d.data || [];
+        if (list.length > 0) setItems([...list, ...list]); // dupliquer pour scroll infini
+      })
+      .catch(() => {});
   }, [token]);
 
   if (items.length === 0) return null;
