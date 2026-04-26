@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import './index.css';
 
 const CLIENT_ID      = "mk16oce917g7q5i485zlyackq33ce0";
 const REDIRECT_URI   = window.location.origin;
@@ -174,6 +175,17 @@ function NameBanner({ username, tier=0, size="md", subDuration=null }) {
   );
 }
 
+function MiniUserBanner({ name, color, subMonths }) {
+  const tier = getBannerTier(subMonths, true);
+  const s    = bannerStyles[tier];
+  return (
+    <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",background:s.bg,border:s.border,borderRadius:5,boxShadow:s.shadow,padding:"2px 10px",height:22,position:"relative",overflow:"hidden"}}>
+      {s.shimmer&&<span style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.15) 50%,transparent 62%)",animation:"shimmer 2.5s infinite"}}/>}
+      <span style={{color:s.textColor,fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"0.75rem",letterSpacing:"0.05em",textShadow:s.textShadow,zIndex:1,whiteSpace:"nowrap"}}>{name}</span>
+    </span>
+  );
+}
+
 // ── ICONS ──────────────────────────────────────────────────────────────────
 const Icon = {
   Home:   ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>,
@@ -192,26 +204,145 @@ const TABS = [
   {id:"shop",  label:"Boutique",IC:Icon.Shop},
 ];
 
-// ── MINI BANNER INLINE (pour le chat) ─────────────────────────────────────
-function MiniUserBanner({ name, color, subMonths }) {
-  const tier = getBannerTier(subMonths, true);
-  const s    = bannerStyles[tier];
+// ── SVG COMPONENTS ─────────────────────────────────────────────────────────
+function TwitchSVG() {
   return (
-    <span style={{
-      display:"inline-flex", alignItems:"center", justifyContent:"center",
-      background: s.bg, border: s.border, borderRadius: 5,
-      boxShadow: s.shadow,
-      padding: "2px 10px", height: 22,
-      position: "relative", overflow: "hidden",
-    }}>
-      {s.shimmer && (
-        <span style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.15) 50%,transparent 62%)",animation:"shimmer 2.5s infinite"}}/>
-      )}
-      <span style={{
-        color: s.textColor, fontFamily:"'Cinzel',serif", fontWeight:700,
-        fontSize:"0.75rem", letterSpacing:"0.05em", textShadow: s.textShadow,
-        zIndex:1, whiteSpace:"nowrap",
-      }}>{name}</span>
+    <svg width="18" height="18" viewBox="0 0 24 28" fill="white">
+      <path d="M2.149 0L0 6.229v19.264h6.857V28l3.429-2.507h4.571L24 19.029V0H2.149zm19.429 17.657l-3.428 2.507H13.5l-3.429 2.507v-2.507H4.571V2.507H21.578v15.15zm-3.428-9.921v7.171h-2.286v-7.17h2.286zm-5.714 0v7.171H10.15v-7.17h2.286z"/>
+    </svg>
+  );
+}
+
+function RaccoonIcon({ size = 36 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="14" cy="17" rx="11" ry="13" fill="#7d7c84" stroke="#1c1828" strokeWidth="1.8"/>
+      <ellipse cx="14" cy="19" rx="6" ry="8" fill="#f8bcc0"/>
+      <ellipse cx="50" cy="17" rx="11" ry="13" fill="#7d7c84" stroke="#1c1828" strokeWidth="1.8"/>
+      <ellipse cx="50" cy="19" rx="6" ry="8" fill="#f8bcc0"/>
+      <circle cx="32" cy="38" r="24" fill="#7d7c84" stroke="#1c1828" strokeWidth="1.8"/>
+      <ellipse cx="32" cy="46" rx="15" ry="11" fill="#c4c2cc"/>
+      <ellipse cx="22" cy="35" rx="9.5" ry="7" fill="#1c1828" transform="rotate(-6 22 35)"/>
+      <ellipse cx="42" cy="35" rx="9.5" ry="7" fill="#1c1828" transform="rotate(6 42 35)"/>
+      <circle cx="22" cy="35" r="6" fill="#f8f8ff"/>
+      <circle cx="42" cy="35" r="6" fill="#f8f8ff"/>
+      <circle cx="23" cy="36" r="3.8" fill="#1c1828"/>
+      <circle cx="43" cy="36" r="3.8" fill="#1c1828"/>
+      <circle cx="25" cy="34" r="1.4" fill="white"/>
+      <circle cx="45" cy="34" r="1.4" fill="white"/>
+      <ellipse cx="32" cy="46" rx="3.5" ry="2.5" fill="#1c1828"/>
+      <path d="M 25 52 Q 32 58 39 52" stroke="#1c1828" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
+function RaccoonMascot({ size = 220, style }) {
+  return (
+    <svg width={size} height={size * (260/220)} viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg" style={style}>
+      <defs>
+        <radialGradient id="raccBg" cx="50%" cy="60%" r="50%">
+          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.2"/>
+          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="110" cy="160" rx="96" ry="82" fill="url(#raccBg)"/>
+      {/* Tail */}
+      <g transform="translate(176,226) rotate(-28)">
+        <ellipse cx="0" cy="0" rx="12" ry="34" fill="#7d7c84"/>
+        <ellipse cx="0" cy="-12" rx="9" ry="8" fill="#c4c2cc"/>
+        <ellipse cx="0" cy="4"  rx="9" ry="7" fill="#c4c2cc"/>
+        <ellipse cx="0" cy="18" rx="8" ry="7" fill="#c4c2cc"/>
+        <ellipse cx="0" cy="0" rx="12" ry="34" fill="none" stroke="#1c1828" strokeWidth="2"/>
+      </g>
+      {/* Body */}
+      <ellipse cx="110" cy="218" rx="54" ry="38" fill="#7d7c84" stroke="#1c1828" strokeWidth="2.5"/>
+      <ellipse cx="110" cy="218" rx="35" ry="25" fill="#c4c2cc"/>
+      {/* Left ear */}
+      <ellipse cx="62" cy="67" rx="23" ry="27" fill="#7d7c84" stroke="#1c1828" strokeWidth="2.5"/>
+      <ellipse cx="62" cy="70"  rx="13" ry="17" fill="#f8bcc0"/>
+      {/* Right ear */}
+      <ellipse cx="158" cy="67" rx="23" ry="27" fill="#7d7c84" stroke="#1c1828" strokeWidth="2.5"/>
+      <ellipse cx="158" cy="70" rx="13" ry="17" fill="#f8bcc0"/>
+      {/* Head */}
+      <circle cx="110" cy="118" r="60" fill="#7d7c84" stroke="#1c1828" strokeWidth="2.5"/>
+      {/* Muzzle */}
+      <ellipse cx="110" cy="131" rx="42" ry="30" fill="#c4c2cc"/>
+      {/* Eye masks */}
+      <ellipse cx="84" cy="109" rx="22" ry="16" fill="#1c1828" transform="rotate(-7 84 109)"/>
+      <ellipse cx="136" cy="109" rx="22" ry="16" fill="#1c1828" transform="rotate(7 136 109)"/>
+      {/* Eye whites */}
+      <circle cx="84"  cy="109" r="12.5" fill="#f8f8ff"/>
+      <circle cx="136" cy="109" r="12.5" fill="#f8f8ff"/>
+      {/* Pupils */}
+      <circle cx="86"  cy="110" r="8" fill="#1c1828"/>
+      <circle cx="138" cy="110" r="8" fill="#1c1828"/>
+      {/* Eye shines */}
+      <circle cx="89"  cy="106" r="2.8" fill="white"/>
+      <circle cx="141" cy="106" r="2.8" fill="white"/>
+      {/* Nose */}
+      <ellipse cx="110" cy="131" rx="8" ry="6" fill="#1c1828"/>
+      {/* Smile */}
+      <path d="M 97 143 Q 110 157 123 143" stroke="#1c1828" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      {/* Left arm */}
+      <path d="M 63 198 Q 50 178 50 163" stroke="#7d7c84" strokeWidth="13" strokeLinecap="round" fill="none"/>
+      <circle cx="50" cy="161" r="10" fill="#7d7c84" stroke="#1c1828" strokeWidth="2"/>
+      {/* Right arm raised (wave) */}
+      <path d="M 157 196 Q 184 168 190 142" stroke="#7d7c84" strokeWidth="13" strokeLinecap="round" fill="none"/>
+      <circle cx="190" cy="140" r="12" fill="#7d7c84" stroke="#1c1828" strokeWidth="2"/>
+      {/* Head highlight */}
+      <ellipse cx="95" cy="84" rx="10" ry="6" fill="rgba(255,255,255,0.13)" transform="rotate(-25 95 84)"/>
+      {/* Sparkle accent top-right */}
+      <g transform="translate(200,74)">
+        <path d="M0,-7 L1.3,-1.3 L7,0 L1.3,1.3 L0,7 L-1.3,1.3 L-7,0 L-1.3,-1.3 Z" fill="#f97316" opacity="0.85"/>
+      </g>
+      {/* Sparkle accent top-left */}
+      <g transform="translate(26,88)">
+        <path d="M0,-5 L0.9,-0.9 L5,0 L0.9,0.9 L0,5 L-0.9,0.9 L-5,0 L-0.9,-0.9 Z" fill="#a78bfa" opacity="0.7"/>
+      </g>
+      {/* Small star near raised paw */}
+      <g transform="translate(202,116)">
+        <path d="M0,-4 L0.7,-0.7 L4,0 L0.7,0.7 L0,4 L-0.7,0.7 L-4,0 L-0.7,-0.7 Z" fill="#fbbf24" opacity="0.9"/>
+      </g>
+    </svg>
+  );
+}
+
+function DaemsLogo({ size = "md" }) {
+  const cfg = {
+    header: { iconSize: 34, fs: "1.65rem" },
+    lg:     { iconSize: 52, fs: "2.6rem"  },
+    md:     { iconSize: 28, fs: "1.35rem" },
+    sm:     { iconSize: 22, fs: "1.05rem" },
+  }[size] || { iconSize: 28, fs: "1.35rem" };
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:10}}>
+      <RaccoonIcon size={cfg.iconSize}/>
+      <span style={{fontFamily:"'Fredoka',sans-serif",fontWeight:700,fontSize:cfg.fs,color:"#f1f0ff",letterSpacing:"0.01em",lineHeight:1}}>
+        daems<span style={{color:"#f97316",display:"inline-block",animation:"underscoreBlink 2s ease-in-out infinite"}}>_</span>
+      </span>
+    </div>
+  );
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function LoadSpinner() {
+  return (
+    <div style={{display:"flex",justifyContent:"center",padding:48}}>
+      <div style={{width:34,height:34,borderRadius:"50%",border:"3px solid rgba(124,58,237,0.15)",borderTopColor:"#7c3aed",animation:"spin 0.75s linear infinite"}}/>
+    </div>
+  );
+}
+
+function NavBtn({onClick,children}) {
+  return (
+    <button onClick={onClick} className="btn btn-ghost btn-sm">{children}</button>
+  );
+}
+
+function Badge({color,children}) {
+  return (
+    <span style={{background:`${color}18`,border:`1px solid ${color}44`,color,borderRadius:6,padding:"2px 8px",fontSize:"0.68rem",fontWeight:700,display:"flex",alignItems:"center",gap:4}}>
+      {children}
     </span>
   );
 }
@@ -223,7 +354,6 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
 
-  // Fusion IRC + local, on retire les locaux dont le texte est déjà dans IRC
   const allMessages = (() => {
     const ircTexts = new Set(ircMessages.map(m => m.text));
     const filteredLocal = localMessages.filter(m => !ircTexts.has(m.text));
@@ -245,11 +375,10 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
     if (!input.trim() || !connected) return;
     const sent = sendIRC(input.trim());
     if (sent) {
-      // Ajoute localement immédiatement
       setLocalMessages(prev => [...prev, {
         id: `local-${Date.now()}`,
         displayName: userInfo?.display_name || "Moi",
-        color: "#9147ff",
+        color: "#7c3aed",
         badges: "",
         text: input.trim(),
         isLocal: true,
@@ -261,35 +390,37 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
   };
 
   return (
-    <div style={{borderRadius:14,border:"1px solid rgba(145,71,255,0.25)",display:"flex",flexDirection:"column",height:"100%",minHeight:460,overflow:"hidden",background:"#0e0e18"}}>
-      <div style={{padding:"10px 14px",background:"rgba(145,71,255,0.12)",borderBottom:"1px solid rgba(145,71,255,0.18)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-        <div style={{display:"flex",alignItems:"center",gap:6}}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="#bf94ff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-          <span style={{fontSize:"0.72rem",fontWeight:700,color:"#bf94ff",letterSpacing:"0.12em",textTransform:"uppercase"}}>Chat live</span>
+    <div style={{borderRadius:16,border:"1px solid rgba(124,58,237,0.22)",display:"flex",flexDirection:"column",height:"100%",minHeight:460,overflow:"hidden",background:"#0d0b1e"}}>
+      {/* Header */}
+      <div style={{padding:"10px 14px",background:"rgba(124,58,237,0.1)",borderBottom:"1px solid rgba(124,58,237,0.18)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#a78bfa"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          <span style={{fontFamily:"'Fredoka',sans-serif",fontSize:"0.85rem",fontWeight:600,color:"#a78bfa",letterSpacing:"0.08em"}}>Chat live</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:6}}>
-          <div style={{width:7,height:7,borderRadius:"50%",background:connected?"#00e676":"#ff5252",boxShadow:connected?"0 0 6px #00e676":"none"}}/>
-          <span style={{fontSize:"0.65rem",color:connected?"#00e676":"#ff5252",fontWeight:600}}>{connected?"Connecté":"Déconnecté"}</span>
+          <div style={{width:7,height:7,borderRadius:"50%",background:connected?"#10b981":"#ef4444",boxShadow:connected?"0 0 7px #10b981":"none"}}/>
+          <span style={{fontSize:"0.65rem",color:connected?"#10b981":"#ef4444",fontWeight:600}}>{connected?"Connecté":"Déconnecté"}</span>
         </div>
       </div>
 
+      {/* Messages */}
       <div style={{flex:1,overflowY:"auto",padding:"10px 12px",display:"flex",flexDirection:"column",gap:2}}>
         {allMessages.length === 0 && (
-          <div style={{color:"#404060",fontSize:"0.8rem",textAlign:"center",marginTop:40}}>En attente de messages…</div>
+          <div style={{color:"#3a3660",fontSize:"0.8rem",textAlign:"center",marginTop:40,fontStyle:"italic"}}>En attente de messages…</div>
         )}
         {allMessages.map(msg => (
           msg.isSystem ? (
-            <div key={msg.id} style={{background:"rgba(145,71,255,0.12)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:8,padding:"6px 10px",fontSize:"0.78rem",color:"#bf94ff",textAlign:"center",margin:"4px 0"}}>
+            <div key={msg.id} style={{background:"rgba(124,58,237,0.12)",border:"1px solid rgba(124,58,237,0.22)",borderRadius:8,padding:"6px 10px",fontSize:"0.78rem",color:"#a78bfa",textAlign:"center",margin:"4px 0"}}>
               🎉 {msg.text}
             </div>
           ) : (
-            <div key={msg.id} style={{display:"flex",gap:6,alignItems:"flex-start",padding:"2px 4px",borderRadius:6}}
+            <div key={msg.id} style={{display:"flex",gap:6,alignItems:"flex-start",padding:"2px 4px",borderRadius:6,transition:"background 0.1s"}}
               onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}
               onMouseLeave={e=>e.currentTarget.style.background=""}>
-              <span style={{fontSize:"0.7rem",flexShrink:0,paddingTop:1}}>
+              <span style={{fontSize:"0.7rem",flexShrink:0,paddingTop:2}}>
                 {parseBadges(typeof msg.badges==="string"?msg.badges:"").map(b=>badgeEmoji(b)).filter(Boolean).join("")}
               </span>
-              <div style={{flex:1,fontSize:"0.82rem",lineHeight:1.45,wordBreak:"break-word"}}>
+              <div style={{flex:1,fontSize:"0.82rem",lineHeight:1.5,wordBreak:"break-word"}}>
                 {msg.subMonths ? (
                   <span style={{display:"inline-flex",alignItems:"center",marginRight:6,verticalAlign:"middle"}}>
                     <MiniUserBanner name={msg.displayName} color={msg.color} subMonths={parseInt(msg.subMonths)}/>
@@ -297,7 +428,7 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
                 ) : (
                   <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
                 )}
-                <span style={{color: msg.isLocal ? "#c0b0ff" : "#d0c8e8"}}>: {msg.text}</span>
+                <span style={{color:msg.isLocal?"#c0a8ff":"#ccc8e0"}}>: {msg.text}</span>
               </div>
             </div>
           )
@@ -305,16 +436,16 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
         <div ref={bottomRef}/>
       </div>
 
-      <div style={{padding:"10px 12px",borderTop:"1px solid rgba(145,71,255,0.15)",display:"flex",gap:8,flexShrink:0,background:"rgba(0,0,0,0.2)"}}>
+      {/* Input */}
+      <div style={{padding:"10px 12px",borderTop:"1px solid rgba(124,58,237,0.15)",display:"flex",gap:8,flexShrink:0,background:"rgba(0,0,0,0.22)"}}>
         <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&send()}
           placeholder={connected?"Envoyer un message…":"Connexion…"}
           disabled={!connected} maxLength={500}
-          style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:8,padding:"8px 12px",color:"#e0d0ff",fontSize:"0.83rem",outline:"none",transition:"border-color 0.2s",fontFamily:"inherit"}}
-          onFocus={e=>e.target.style.borderColor="rgba(145,71,255,0.6)"}
-          onBlur={e=>e.target.style.borderColor="rgba(145,71,255,0.2)"}
+          className="chat-input"
         />
-        <button onClick={send} disabled={!connected||!input.trim()} style={{background:connected&&input.trim()?"linear-gradient(135deg,#9147ff,#6020c0)":"rgba(255,255,255,0.05)",border:"none",borderRadius:8,padding:"8px 14px",color:connected&&input.trim()?"#fff":"#404060",cursor:connected&&input.trim()?"pointer":"not-allowed",transition:"all 0.2s"}}>
+        <button onClick={send} disabled={!connected||!input.trim()}
+          style={{background:connected&&input.trim()?"linear-gradient(135deg,#7c3aed,#5b21b6)":"rgba(255,255,255,0.05)",border:"none",borderRadius:8,padding:"8px 14px",color:connected&&input.trim()?"#fff":"#3a3660",cursor:connected&&input.trim()?"pointer":"not-allowed",transition:"all 0.18s",flexShrink:0}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
@@ -331,22 +462,55 @@ function ActivityTicker({ token }) {
       .then(r=>r.json()).then(d=>{ const l=d.data||[]; if(l.length>0) setItems([...l,...l]); }).catch(()=>{});
   }, [token]);
   if (items.length === 0) return null;
+
+  const typeClass = (type) => type==="sub"?"ticker-item-sub":type==="subgift"?"ticker-item-gift":"ticker-item-cheer";
+
   return (
-    <div style={{position:"relative",overflow:"hidden",background:"rgba(145,71,255,0.06)",border:"1px solid rgba(145,71,255,0.15)",borderRadius:12,padding:"12px 0",marginTop:16}}>
-      <div style={{position:"absolute",left:0,top:0,bottom:0,width:80,background:"linear-gradient(to right,#0e0e10,transparent)",zIndex:2,pointerEvents:"none"}}/>
-      <div style={{position:"absolute",right:0,top:0,bottom:0,width:80,background:"linear-gradient(to left,#0e0e10,transparent)",zIndex:2,pointerEvents:"none"}}/>
-      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6,padding:"0 20px"}}>
-        <span style={{fontSize:"0.68rem",color:"#605080",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em"}}>Activité récente</span>
-        <div style={{flex:1,height:1,background:"rgba(145,71,255,0.15)"}}/>
+    <div style={{position:"relative",overflow:"hidden",background:"rgba(124,58,237,0.05)",border:"1px solid rgba(124,58,237,0.14)",borderRadius:14,padding:"11px 0"}}>
+      <div style={{position:"absolute",left:0,top:0,bottom:0,width:80,background:"linear-gradient(to right,#0b0914,transparent)",zIndex:2,pointerEvents:"none"}}/>
+      <div style={{position:"absolute",right:0,top:0,bottom:0,width:80,background:"linear-gradient(to left,#0b0914,transparent)",zIndex:2,pointerEvents:"none"}}/>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,padding:"0 20px"}}>
+        <span style={{fontFamily:"'Fredoka',sans-serif",fontSize:"0.75rem",color:"#5e5a7e",fontWeight:600,letterSpacing:"0.08em",textTransform:"uppercase"}}>Activité récente</span>
+        <div style={{flex:1,height:1,background:"rgba(124,58,237,0.15)"}}/>
       </div>
-      <div style={{display:"flex",gap:12,padding:"4px 20px",animation:"ticker 90s linear infinite",width:"max-content"}}>
+      <div style={{display:"flex",gap:10,padding:"2px 20px",animation:"ticker 90s linear infinite",width:"max-content"}}>
         {items.map((item,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(145,71,255,0.1)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:20,padding:"5px 14px",whiteSpace:"nowrap",flexShrink:0}}>
-            <span style={{fontSize:"0.85rem"}}>{item.icon}</span>
-            <span style={{color:"#e0d0ff",fontWeight:700,fontSize:"0.82rem"}}>{item.name}</span>
-            <span style={{color:"#706090",fontSize:"0.72rem"}}>{item.label}</span>
+          <div key={i} className={typeClass(item.type)}
+            style={{display:"flex",alignItems:"center",gap:8,background:"var(--item-color,rgba(124,58,237,0.1))",border:"1px solid var(--item-border,rgba(124,58,237,0.22))",borderRadius:20,padding:"5px 14px",whiteSpace:"nowrap",flexShrink:0}}>
+            <span style={{fontSize:"0.82rem"}}>{item.icon}</span>
+            <span style={{color:"#e8e0ff",fontWeight:700,fontSize:"0.8rem"}}>{item.name}</span>
+            <span style={{color:"#6e6a8a",fontSize:"0.7rem"}}>{item.label}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ── GOAL CARD ──────────────────────────────────────────────────────────────
+function GoalCard({icon,label,value,goal,color}) {
+  const current = value ?? 0;
+  const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0;
+  const pctDisplay = Math.round(pct);
+  return (
+    <div style={{background:`linear-gradient(135deg,${color}12,${color}05)`,border:`1px solid ${color}28`,borderRadius:14,padding:"16px 20px",flex:1}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{color,opacity:0.88}}>{icon}</div>
+          <span style={{fontFamily:"'Fredoka',sans-serif",fontSize:"0.78rem",color:"#7a7698",textTransform:"uppercase",letterSpacing:"0.1em",fontWeight:600}}>{label}</span>
+        </div>
+        <div style={{lineHeight:1}}>
+          <span style={{fontFamily:"'Fredoka',sans-serif",fontSize:"1.5rem",fontWeight:700,color:"#f1f0ff"}}>{value !== null ? value.toLocaleString("fr-FR") : "…"}</span>
+          <span style={{fontSize:"0.75rem",color:"#4a4868",fontWeight:500}}>{" /"}{goal.toLocaleString("fr-FR")}</span>
+        </div>
+      </div>
+      <div style={{position:"relative",height:10,background:"rgba(255,255,255,0.06)",borderRadius:99,overflow:"hidden"}}>
+        <div style={{position:"absolute",left:0,top:0,bottom:0,width:`${pct}%`,background:`linear-gradient(90deg,${color}55,${color})`,borderRadius:99,boxShadow:`0 0 12px ${color}70`,transition:"width 1.2s cubic-bezier(.4,0,.2,1)"}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 38%,rgba(255,255,255,0.1) 50%,transparent 62%)",animation:"shimmer 2.8s infinite"}}/>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
+        <span style={{fontSize:"0.62rem",color:"#3a3858"}}>{value !== null ? value.toLocaleString("fr-FR") : "…"}&thinsp;/&thinsp;{goal.toLocaleString("fr-FR")}</span>
+        <span style={{fontFamily:"'Fredoka',sans-serif",fontSize:"0.72rem",fontWeight:600,color:pct>=90?color:"#4a4868"}}>{pctDisplay}%</span>
       </div>
     </div>
   );
@@ -365,56 +529,33 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
+      {/* Player + Chat */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:16,minHeight:460}}>
-        <div style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(145,71,255,0.25)",boxShadow:"0 0 30px rgba(145,71,255,0.1)"}}>
+        <div style={{borderRadius:16,overflow:"hidden",border:"1px solid rgba(124,58,237,0.28)",boxShadow:"0 0 40px rgba(124,58,237,0.12)"}}>
           <iframe src={`https://player.twitch.tv/?channel=${BROADCASTER}&parent=${window.location.hostname}&autoplay=false`}
             height="100%" width="100%" style={{display:"block",minHeight:420,border:"none"}} allowFullScreen/>
         </div>
         <TwitchChat ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges} userInfo={userInfo}/>
       </div>
+
+      {/* Activity */}
       <ActivityTicker token={token}/>
+
+      {/* Goals + SubGift */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,columnGap:28,alignItems:"stretch"}}>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          <GoalCard icon={<Icon.Users/>} label="Followers" value={stats.followers} goal={GOAL_FOLLOWERS} color="#9147ff"/>
-          <GoalCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs}      goal={GOAL_SUBS}      color="#f59e0b"/>
+          <GoalCard icon={<Icon.Users/>} label="Followers" value={stats.followers} goal={GOAL_FOLLOWERS} color="#7c3aed"/>
+          <GoalCard icon={<Icon.Star/>}  label="Abonnés"   value={stats.subs}      goal={GOAL_SUBS}      color="#f97316"/>
         </div>
         <div style={{animation:"giftFloat 3.5s ease-in-out infinite"}}>
           <a href={`https://www.twitch.tv/${BROADCASTER}`} target="_blank" rel="noreferrer"
-            style={{display:"block",borderRadius:12,overflow:"hidden",cursor:"pointer",textDecoration:"none",boxShadow:"0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)",transition:"transform 0.25s, box-shadow 0.25s"}}
-            onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.05)";e.currentTarget.style.boxShadow="0 0 30px rgba(145,71,255,0.9), 0 0 16px rgba(255,140,0,0.65)";}}
-            onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 0 12px rgba(145,71,255,0.55), 0 0 6px rgba(255,140,0,0.35)";}}
+            style={{display:"block",borderRadius:14,overflow:"hidden",cursor:"pointer",textDecoration:"none",boxShadow:"0 0 14px rgba(124,58,237,0.5), 0 0 8px rgba(249,115,22,0.3)",transition:"transform 0.25s,box-shadow 0.25s"}}
+            onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.05)";e.currentTarget.style.boxShadow="0 0 32px rgba(124,58,237,0.85), 0 0 18px rgba(249,115,22,0.6)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 0 14px rgba(124,58,237,0.5), 0 0 8px rgba(249,115,22,0.3)";}}
           >
-            <img src="/racoonsubgift.png" alt="Offrir un sub" style={{width:"100%",height:"100%",objectFit:"cover",display:"block",borderRadius:12}}/>
+            <img src="/racoonsubgift.png" alt="Offrir un sub" style={{width:"100%",height:"100%",objectFit:"cover",display:"block",borderRadius:14}}/>
           </a>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function GoalCard({icon,label,value,goal,color}) {
-  const current = value ?? 0;
-  const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0;
-  const pctDisplay = Math.round(pct);
-  return (
-    <div style={{background:`linear-gradient(135deg,${color}12,${color}05)`,border:`1px solid ${color}30`,borderRadius:12,padding:"14px 18px",flex:1}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:7}}>
-          <div style={{color,opacity:0.85}}>{icon}</div>
-          <span style={{fontSize:"0.68rem",color:"#8080a0",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600}}>{label}</span>
-        </div>
-        <div>
-          <span style={{fontSize:"1.3rem",fontWeight:800,color:"#fff",lineHeight:1}}>{value !== null ? value.toLocaleString("fr-FR") : "…"}</span>
-          <span style={{fontSize:"0.72rem",color:"#50506a",fontWeight:500}}>{" /"}{goal.toLocaleString("fr-FR")}</span>
-        </div>
-      </div>
-      <div style={{position:"relative",height:10,background:"rgba(255,255,255,0.06)",borderRadius:99,overflow:"hidden"}}>
-        <div style={{position:"absolute",left:0,top:0,bottom:0,width:`${pct}%`,background:`linear-gradient(90deg,${color}60,${color})`,borderRadius:99,boxShadow:`0 0 10px ${color}80`,transition:"width 1.2s cubic-bezier(.4,0,.2,1)"}}/>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 38%,rgba(255,255,255,0.1) 50%,transparent 62%)",animation:"shimmer 2.8s infinite"}}/>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
-        <span style={{fontSize:"0.6rem",color:"#40405a"}}>{value !== null ? value.toLocaleString("fr-FR") : "…"}&thinsp;/&thinsp;{goal.toLocaleString("fr-FR")}</span>
-        <span style={{fontSize:"0.65rem",fontWeight:700,color:pct>=90?color:"#50506a",letterSpacing:"0.04em"}}>{pctDisplay}%</span>
       </div>
     </div>
   );
@@ -443,23 +584,26 @@ function ClipsPage({token}) {
 
   return (
     <div>
-      <div style={{display:"flex",gap:10,marginBottom:22,alignItems:"center"}}>
-        <span style={{color:"#606080",fontSize:"0.76rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em"}}>Période</span>
+      <div style={{display:"flex",gap:10,marginBottom:24,alignItems:"center"}}>
+        <span style={{fontFamily:"'Fredoka',sans-serif",fontSize:"0.82rem",color:"#5e5a7e",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em"}}>Période</span>
         {["week","month"].map(f=>(
-          <button key={f} onClick={()=>setFilter(f)} style={{padding:"7px 18px",borderRadius:20,border:"none",cursor:"pointer",fontWeight:700,fontSize:"0.82rem",background:filter===f?"linear-gradient(135deg,#9147ff,#6020c0)":"rgba(255,255,255,0.06)",color:filter===f?"#fff":"#8080a0",boxShadow:filter===f?"0 4px 14px rgba(145,71,255,0.35)":"none",transition:"all 0.18s"}}>
+          <button key={f} onClick={()=>setFilter(f)} className={`filter-btn${filter===f?" active":""}`}>
             {f==="week"?"Cette semaine":"Ce mois"}
           </button>
         ))}
-        <span style={{marginLeft:"auto",color:"#404060",fontSize:"0.76rem"}}>Page {page}</span>
+        <span style={{marginLeft:"auto",color:"#3a3858",fontSize:"0.76rem"}}>Page {page}</span>
       </div>
-      {loading?<LoadSpinner/>:clips.length===0?(
-        <div style={{textAlign:"center",padding:60,color:"#505070"}}><p>Aucun clip sur cette période.</p></div>
-      ):(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:14}}>
+      {loading ? <LoadSpinner/> : clips.length===0 ? (
+        <div style={{textAlign:"center",padding:72,color:"#3a3858"}}>
+          <RaccoonIcon size={52} style={{margin:"0 auto 16px",opacity:0.4}}/>
+          <p style={{fontSize:"0.9rem"}}>Aucun clip sur cette période.</p>
+        </div>
+      ) : (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:16}}>
           {clips.map(c=><ClipCard key={c.id} clip={c}/>)}
         </div>
       )}
-      <div style={{display:"flex",gap:10,marginTop:22,justifyContent:"center"}}>
+      <div style={{display:"flex",gap:10,marginTop:24,justifyContent:"center"}}>
         {page>1&&<NavBtn onClick={()=>{setPage(p=>p-1);load(null);}}>← Précédent</NavBtn>}
         {cursor&&<NavBtn onClick={()=>{setPage(p=>p+1);load(cursor);}}>Suivant →</NavBtn>}
       </div>
@@ -469,26 +613,23 @@ function ClipsPage({token}) {
 
 function ClipCard({clip}) {
   return (
-    <a href={clip.url} target="_blank" rel="noreferrer" style={{textDecoration:"none"}}>
-      <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(145,71,255,0.18)",borderRadius:12,overflow:"hidden",transition:"all 0.18s"}}
-        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 12px 28px rgba(145,71,255,0.25)";e.currentTarget.style.borderColor="rgba(145,71,255,0.45)";}}
-        onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";e.currentTarget.style.borderColor="rgba(145,71,255,0.18)";}}>
-        <div style={{position:"relative"}}>
-          <img src={clip.thumbnail_url} alt={clip.title} style={{width:"100%",aspectRatio:"16/9",objectFit:"cover",display:"block"}}/>
-          <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"rgba(145,71,255,0.85)",borderRadius:"50%",width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-          </div>
+    <a href={clip.url} target="_blank" rel="noreferrer" className="clip-card">
+      <div style={{position:"relative"}}>
+        <img src={clip.thumbnail_url} alt={clip.title} style={{width:"100%",aspectRatio:"16/9",objectFit:"cover",display:"block"}}/>
+        <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.25)"}}/>
+        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"rgba(124,58,237,0.88)",borderRadius:"50%",width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 20px rgba(124,58,237,0.6)"}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
         </div>
-        <div style={{padding:"11px 13px"}}>
-          <div style={{color:"#ddd0f8",fontWeight:600,fontSize:"0.87rem",lineHeight:1.35,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{clip.title}</div>
-          <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:7}}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="#9147ff"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-            <span style={{color:"#bf94ff",fontWeight:700,fontSize:"0.82rem"}}>{clip.view_count?.toLocaleString("fr-FR")} vues</span>
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.7rem",color:"#605080"}}>
-            <span>{clip.creator_name}</span>
-            <span>{new Date(clip.created_at).toLocaleDateString("fr-FR")}</span>
-          </div>
+        <div style={{position:"absolute",bottom:8,right:8,background:"rgba(0,0,0,0.75)",borderRadius:6,padding:"3px 8px",display:"flex",alignItems:"center",gap:5}}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="#a78bfa"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+          <span style={{color:"#a78bfa",fontWeight:700,fontSize:"0.72rem"}}>{clip.view_count?.toLocaleString("fr-FR")}</span>
+        </div>
+      </div>
+      <div style={{padding:"12px 14px"}}>
+        <div style={{color:"#e0d8f8",fontWeight:600,fontSize:"0.87rem",lineHeight:1.35,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{clip.title}</div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.7rem",color:"#5e5a7e"}}>
+          <span>{clip.creator_name}</span>
+          <span>{new Date(clip.created_at).toLocaleDateString("fr-FR")}</span>
         </div>
       </div>
     </a>
@@ -499,17 +640,33 @@ function ClipCard({clip}) {
 function ShopPage() {
   return (
     <div>
-      <div style={{textAlign:"center",marginBottom:30}}>
-        <div style={{fontSize:"3rem",marginBottom:6}}>🏪</div>
-        <h2 style={{color:"#e0d0ff",fontWeight:800,fontSize:"1.5rem",margin:0}}>Boutique Daems_</h2>
-        <p style={{color:"#505070",marginTop:8,fontSize:"0.87rem"}}>Des surprises arrivent bientôt… keep watching 👀</p>
+      {/* Header with mascot */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:32,alignItems:"center",marginBottom:40,background:"linear-gradient(135deg,rgba(124,58,237,0.08),rgba(249,115,22,0.05))",border:"1px solid rgba(124,58,237,0.18)",borderRadius:20,padding:"32px 40px",overflow:"hidden",position:"relative"}}>
+        <div style={{position:"absolute",top:-60,right:120,width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,58,237,0.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        <div>
+          <h2 style={{fontFamily:"'Fredoka',sans-serif",fontSize:"2rem",fontWeight:700,color:"#f1f0ff",marginBottom:10,lineHeight:1.15}}>
+            La boutique <span style={{color:"#f97316"}}>daems_</span>
+          </h2>
+          <p style={{color:"#7a7698",fontSize:"0.95rem",lineHeight:1.6,maxWidth:420}}>
+            Des merches exclusifs arrivent bientôt… Le raton vous prépare quelque chose de beau. Restez connectés. 👀
+          </p>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:16,padding:"8px 16px",background:"rgba(249,115,22,0.12)",border:"1px solid rgba(249,115,22,0.28)",borderRadius:99}}>
+            <div style={{width:7,height:7,borderRadius:"50%",background:"#f97316",animation:"pulse 2s infinite"}}/>
+            <span style={{fontSize:"0.78rem",color:"#f97316",fontWeight:700,letterSpacing:"0.06em"}}>Coming soon</span>
+          </div>
+        </div>
+        <div style={{animation:"raccoonFloat 4s ease-in-out infinite",filter:"drop-shadow(0 10px 20px rgba(124,58,237,0.25))"}}>
+          <RaccoonMascot size={140}/>
+        </div>
       </div>
+
+      {/* Items grid */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:18}}>
         {Array.from({length:6}).map((_,i)=>(
-          <div key={i} style={{border:"2px dashed rgba(145,71,255,0.2)",borderRadius:16,minHeight:190,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,background:"rgba(145,71,255,0.03)",position:"relative",overflow:"hidden"}}>
-            <div style={{width:56,height:56,borderRadius:12,background:"rgba(145,71,255,0.1)",border:"1px solid rgba(145,71,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.8rem"}}>🔒</div>
-            <span style={{background:"linear-gradient(135deg,#9147ff,#5010b0)",color:"#fff",fontSize:"0.68rem",fontWeight:800,padding:"3px 12px",borderRadius:20,textTransform:"uppercase",letterSpacing:"0.14em",boxShadow:"0 2px 10px rgba(145,71,255,0.35)"}}>Release Soon</span>
-            <div style={{position:"absolute",inset:0,background:`linear-gradient(105deg,transparent 38%,rgba(145,71,255,0.05) 50%,transparent 62%)`,animation:`shimmer ${2.2+i*0.35}s infinite`}}/>
+          <div key={i} className="shop-item">
+            <div style={{width:58,height:58,borderRadius:14,background:"rgba(124,58,237,0.1)",border:"1px solid rgba(124,58,237,0.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.7rem"}}>🔒</div>
+            <span style={{background:"linear-gradient(135deg,#7c3aed,#5b21b6)",color:"#fff",fontSize:"0.68rem",fontWeight:800,padding:"4px 14px",borderRadius:20,textTransform:"uppercase",letterSpacing:"0.14em",boxShadow:"0 2px 12px rgba(124,58,237,0.4)"}}>Bientôt</span>
+            <div style={{position:"absolute",inset:0,background:`linear-gradient(105deg,transparent 38%,rgba(124,58,237,0.05) 50%,transparent 62%)`,animation:`shimmer ${2.2+i*0.35}s infinite`}}/>
           </div>
         ))}
       </div>
@@ -517,40 +674,7 @@ function ShopPage() {
   );
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-function NavBtn({onClick,children}) {
-  return (
-    <button onClick={onClick} style={{padding:"7px 20px",borderRadius:20,border:"1px solid rgba(145,71,255,0.25)",background:"rgba(145,71,255,0.08)",color:"#a080d0",cursor:"pointer",fontWeight:600,fontSize:"0.82rem",transition:"all 0.15s"}}
-      onMouseEnter={e=>e.currentTarget.style.background="rgba(145,71,255,0.2)"}
-      onMouseLeave={e=>e.currentTarget.style.background="rgba(145,71,255,0.08)"}
-    >{children}</button>
-  );
-}
-
-function LoadSpinner() {
-  return (
-    <div style={{display:"flex",justifyContent:"center",padding:40}}>
-      <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid rgba(145,71,255,0.15)",borderTopColor:"#9147ff",animation:"spin 0.75s linear infinite"}}/>
-    </div>
-  );
-}
-
-function Badge({color,children}) {
-  return (
-    <span style={{background:`${color}18`,border:`1px solid ${color}44`,color,borderRadius:6,padding:"2px 8px",fontSize:"0.68rem",fontWeight:700,display:"flex",alignItems:"center",gap:4}}>
-      {children}
-    </span>
-  );
-}
-
-function TwitchSVG() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 28" fill="white">
-      <path d="M2.149 0L0 6.229v19.264h6.857V28l3.429-2.507h4.571L24 19.029V0H2.149zm19.429 17.657l-3.428 2.507H13.5l-3.429 2.507v-2.507H4.571V2.507H21.578v15.15zm-3.428-9.921v7.171h-2.286v-7.17h2.286zm-5.714 0v7.171H10.15v-7.17h2.286z"/>
-    </svg>
-  );
-}
-
+// ── AVATAR MENU ────────────────────────────────────────────────────────────
 function AvatarMenu({userInfo, isFollower, isSub, subMonths, onLogout}) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -562,29 +686,24 @@ function AvatarMenu({userInfo, isFollower, isSub, subMonths, onLogout}) {
   return (
     <div ref={ref} style={{position:"relative"}}>
       <button onClick={()=>setOpen(o=>!o)} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center",gap:8}}>
-        <img src={userInfo.profile_image_url} alt="" style={{width:36,height:36,borderRadius:"50%",border:`2px solid ${open?"#9147ff":"rgba(145,71,255,0.4)"}`,transition:"border-color 0.2s",boxShadow:open?"0 0 12px rgba(145,71,255,0.5)":"none"}}/>
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#606080" style={{transform:open?"rotate(180deg)":"",transition:"transform 0.2s"}}><path d="M7 10l5 5 5-5z"/></svg>
+        <img src={userInfo.profile_image_url} alt="" style={{width:36,height:36,borderRadius:"50%",border:`2px solid ${open?"#7c3aed":"rgba(124,58,237,0.4)"}`,transition:"border-color 0.2s",boxShadow:open?"0 0 14px rgba(124,58,237,0.5)":"none"}}/>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#5e5a7e" style={{transform:open?"rotate(180deg)":"",transition:"transform 0.2s"}}><path d="M7 10l5 5 5-5z"/></svg>
       </button>
       {open&&(
-        <div style={{position:"absolute",right:0,top:"calc(100% + 10px)",width:220,background:"#1a1a2e",border:"1px solid rgba(145,71,255,0.25)",borderRadius:14,boxShadow:"0 16px 40px rgba(0,0,0,0.6)",zIndex:200,overflow:"hidden",animation:"fadeIn 0.15s ease"}}>
-          <div style={{padding:"14px 16px",borderBottom:"1px solid rgba(145,71,255,0.15)",background:"rgba(145,71,255,0.08)"}}>
-            <div style={{color:"#fff",fontWeight:700,fontSize:"0.9rem"}}>{userInfo.display_name}</div>
-            <div style={{display:"flex",gap:5,marginTop:6}}>
-              {isFollower&&<Badge color="#e91916"><Icon.Heart/>Follow</Badge>}
-              {isSub&&<Badge color="#9147ff"><Icon.Star/>Sub {subMonths?`· ${subMonths}m`:""}</Badge>}
+        <div className="avatar-dropdown">
+          <div style={{padding:"14px 16px",borderBottom:"1px solid rgba(124,58,237,0.15)",background:"rgba(124,58,237,0.08)"}}>
+            <div style={{fontFamily:"'Fredoka',sans-serif",color:"#f1f0ff",fontWeight:600,fontSize:"0.95rem"}}>{userInfo.display_name}</div>
+            <div style={{display:"flex",gap:5,marginTop:7}}>
+              {isFollower&&<Badge color="#ef4444"><Icon.Heart/>Follow</Badge>}
+              {isSub&&<Badge color="#7c3aed"><Icon.Star/>Sub {subMonths?`· ${subMonths}m`:""}</Badge>}
             </div>
           </div>
           <div style={{padding:"6px 0"}}>
-            <a href={`https://www.twitch.tv/${userInfo.login}`} target="_blank" rel="noreferrer"
-              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",color:"#c0b0e0",textDecoration:"none",fontSize:"0.85rem"}}
-              onMouseEnter={e=>e.currentTarget.style.background="rgba(145,71,255,0.1)"}
-              onMouseLeave={e=>e.currentTarget.style.background=""}>
+            <a href={`https://www.twitch.tv/${userInfo.login}`} target="_blank" rel="noreferrer" className="avatar-menu-link">
               <TwitchSVG/> Voir mon profil Twitch
             </a>
-            <div style={{height:1,background:"rgba(145,71,255,0.1)",margin:"4px 0"}}/>
-            <button onClick={()=>{setOpen(false);onLogout();}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",color:"#ff6060",background:"none",border:"none",cursor:"pointer",fontSize:"0.85rem",width:"100%",textAlign:"left"}}
-              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,60,60,0.1)"}
-              onMouseLeave={e=>e.currentTarget.style.background=""}>
+            <div style={{height:1,background:"rgba(124,58,237,0.1)",margin:"4px 0"}}/>
+            <button onClick={()=>{setOpen(false);onLogout();}} className="avatar-menu-btn">
               <Icon.Logout/> Se déconnecter
             </button>
           </div>
@@ -594,45 +713,51 @@ function AvatarMenu({userInfo, isFollower, isSub, subMonths, onLogout}) {
   );
 }
 
+// ── LOGIN ──────────────────────────────────────────────────────────────────
 function LoginPage({onLogin}) {
   return (
-    <div style={{...appStyle,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
-      <style>{CSS}</style>
-      <div style={{textAlign:"center",maxWidth:420,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(145,71,255,0.2)",borderRadius:22,padding:"52px 38px",boxShadow:"0 24px 80px rgba(145,71,255,0.12)"}}>
-        <DaemsLogo size="lg"/>
-        <p style={{color:"#505070",marginTop:6,fontSize:"0.87rem",marginBottom:30}}>Le QG de la communauté Daems_</p>
-        <div style={{marginBottom:24}}><NameBanner username="???" tier={0} size="md"/></div>
-        <p style={{color:"#454060",fontSize:"0.78rem",marginBottom:20}}>Connecte-toi pour débloquer ta bannière et accéder à tous les contenus !</p>
-        <button onClick={onLogin} style={{background:"linear-gradient(135deg,#9147ff,#5010b0)",border:"none",borderRadius:11,color:"#fff",padding:"13px 32px",fontWeight:800,fontSize:"0.95rem",cursor:"pointer",width:"100%",boxShadow:"0 8px 30px rgba(145,71,255,0.45)",transition:"all 0.2s",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}
-          onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"}
-          onMouseLeave={e=>e.currentTarget.style.transform=""}>
-          <TwitchSVG/> Se connecter avec Twitch
-        </button>
-        <p style={{color:"#303050",fontSize:"0.68rem",marginTop:14}}>Site fan non affilié à Twitch Inc.</p>
+    <div className="login-page">
+      <div className="login-glow-1"/>
+      <div className="login-glow-2"/>
+      <div className="login-inner">
+        <div className="login-text">
+          <DaemsLogo size="lg"/>
+          <h1 className="login-title">
+            Le QG officiel de<br/>la <span className="acc">communauté</span>
+          </h1>
+          <p className="login-subtitle">
+            Rejoins la meute, suis le stream en direct, débloque ta bannière exclusive et accède à tous les contenus réservés à la communauté !
+          </p>
+          <div className="login-features">
+            {["Bannière de fidélité exclusive selon tes mois d'abonnement","Chat live intégré directement sur le site","Clips et meilleurs moments de daems_","Boutique exclusive — bientôt disponible"].map((f,i)=>(
+              <div key={i} className="login-feature">
+                <div className="login-feature-dot"/>
+                {f}
+              </div>
+            ))}
+          </div>
+          <button onClick={onLogin} className="btn btn-twitch">
+            <TwitchSVG/> Se connecter avec Twitch
+          </button>
+          <p className="login-disclaimer">Site fan non affilié à Twitch Inc.</p>
+        </div>
+        <div className="login-mascot">
+          <div className="login-mascot-glow"/>
+          <RaccoonMascot size={300} className="raccoon-float"/>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function DaemsLogo({size="md"}) {
-  const fs = size==="lg"?"2.4rem":size==="header"?"1.8rem":"1.35rem";
-  return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:size==="lg"?"center":"flex-start",lineHeight:1}}>
-      <span style={{fontFamily:"'Cinzel','Georgia',serif",fontWeight:900,fontSize:fs,background:"linear-gradient(135deg,#9147ff 0%,#bf94ff 55%,#ff79c6 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"0.05em",filter:"drop-shadow(0 0 16px rgba(145,71,255,0.5))"}}>
-        DAEMS_
-      </span>
     </div>
   );
 }
 
 // ── MAIN ───────────────────────────────────────────────────────────────────
 export default function App() {
-  const [token,setToken]           = useState(()=>localStorage.getItem("tw_token"));
-  const [userInfo,setUserInfo]     = useState(null);
+  const [token,setToken]       = useState(()=>localStorage.getItem("tw_token"));
+  const [userInfo,setUserInfo] = useState(null);
   const [isFollower,setIsFollower] = useState(false);
-  const [isSub,setIsSub]           = useState(false);
-  const [tab,setTab]               = useState("home");
-  const [booting,setBooting]       = useState(true);
+  const [isSub,setIsSub]       = useState(false);
+  const [tab,setTab]           = useState("home");
+  const [booting,setBooting]   = useState(true);
 
   const { subMonths, ircMessages, connected, sendIRC, parseBadges } = useIRC(token, userInfo?.login);
   const subDuration = isSub ? formatSubDuration(subMonths) : null;
@@ -688,30 +813,30 @@ export default function App() {
   }, [token, userInfo?.id, subMonths, isSub]);
 
   if(!token) return <LoginPage onLogin={login}/>;
-  if(booting) return <div style={{...appStyle,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><style>{CSS}</style><LoadSpinner/></div>;
+  if(booting) return (
+    <div className="app-wrapper" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
+      <LoadSpinner/>
+    </div>
+  );
 
   return (
-    <div style={appStyle}>
-      <style>{CSS}</style>
-      <header style={headerStyle}>
+    <div className="app-wrapper">
+      <header className="app-header">
         <DaemsLogo size="header"/>
-        <nav style={{display:"flex",gap:4}}>
+        <nav className="app-nav">
           {TABS.map(({id,label,IC})=>(
-            <button key={id} onClick={()=>setTab(id)} style={{padding:"8px 18px",borderRadius:10,border:"none",cursor:"pointer",fontWeight:tab===id?700:500,fontSize:"0.85rem",background:tab===id?"rgba(145,71,255,0.25)":"rgba(255,255,255,0.04)",color:tab===id?"#e8d8ff":"#706090",borderBottom:`2px solid ${tab===id?"#9147ff":"transparent"}`,transition:"all 0.15s",display:"flex",alignItems:"center",gap:7,boxShadow:tab===id?"0 2px 12px rgba(145,71,255,0.2)":"none"}}
-              onMouseEnter={e=>{if(tab!==id)e.currentTarget.style.background="rgba(145,71,255,0.1)";}}
-              onMouseLeave={e=>{if(tab!==id)e.currentTarget.style.background="rgba(255,255,255,0.04)";}}
-            ><IC/>{label}</button>
+            <button key={id} onClick={()=>setTab(id)} className={`nav-tab${tab===id?" active":""}`}>
+              <IC/>{label}
+            </button>
           ))}
         </nav>
-        <div style={{display:"flex",alignItems:"center",gap:16}}>
+        <div className="header-actions">
           {userInfo&&(
             <>
               {!isSub&&(
-                <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
-                  style={{display:"inline-flex",alignItems:"center",gap:5,padding:"6px 13px",background:"linear-gradient(135deg,#9147ff,#6020c0)",borderRadius:8,fontSize:"0.78rem",fontWeight:700,color:"#fff",textDecoration:"none",boxShadow:"0 2px 10px rgba(145,71,255,0.4)",transition:"box-shadow 0.2s,transform 0.2s",flexShrink:0}}
-                  onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 20px rgba(145,71,255,0.65)";e.currentTarget.style.transform="translateY(-1px)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 2px 10px rgba(145,71,255,0.4)";e.currentTarget.style.transform="";}}
-                ><Icon.Star/>S'abonner</a>
+                <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer" className="btn btn-accent btn-sm">
+                  <Icon.Star/>S'abonner
+                </a>
               )}
               <NameBanner username={userInfo.display_name} tier={bannerTier} size="sm" subDuration={subDuration}/>
               <AvatarMenu userInfo={userInfo} isFollower={isFollower} isSub={isSub} subMonths={subMonths} onLogout={logout}/>
@@ -719,7 +844,7 @@ export default function App() {
           )}
         </div>
       </header>
-      <main style={{padding:"96px 28px 48px",maxWidth:1280,margin:"0 auto",width:"100%"}}>
+      <main className="app-main">
         {tab==="home"  && <HomePage token={token} userInfo={userInfo} ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges}/>}
         {tab==="clips" && <ClipsPage token={token}/>}
         {tab==="shop"  && <ShopPage/>}
@@ -727,19 +852,3 @@ export default function App() {
     </div>
   );
 }
-
-const appStyle={background:"#0e0e10",minHeight:"100vh",color:"#efeff1",fontFamily:"'Inter','Segoe UI',sans-serif"};
-const headerStyle={position:"fixed",top:0,left:0,right:0,zIndex:100,height:74,background:"rgba(10,10,18,0.96)",backdropFilter:"blur(24px)",borderBottom:"1px solid rgba(145,71,255,0.2)",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 28px",boxShadow:"0 4px 30px rgba(0,0,0,0.5)"};
-const CSS=`
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  ::-webkit-scrollbar{width:5px}
-  ::-webkit-scrollbar-track{background:#111}
-  ::-webkit-scrollbar-thumb{background:#9147ff44;border-radius:3px}
-  @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
-  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 4px 16px rgba(145,71,255,0.35)}50%{opacity:.88;box-shadow:0 4px 28px rgba(145,71,255,0.65)}}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes giftFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-`;
