@@ -36,6 +36,9 @@ function useIRC(token, username) {
     return str.split(",").map(b=>b.split("/")[0]).filter(Boolean);
   };
 
+  const usernameRef = useRef(username);
+  useEffect(() => { usernameRef.current = username; }, [username]);
+
   useEffect(() => {
     if (!token || !username) return;
     const ws = new WebSocket("wss://irc-ws.chat.twitch.tv");
@@ -824,7 +827,6 @@ export default function App() {
       <main style={{paddingTop:80,padding:"96px 28px 48px",maxWidth:1280,margin:"0 auto",width:"100%"}}>
         {tab==="home"        &&<HomePage token={token} userInfo={userInfo} messages={messages} connected={connected} sendMessage={sendMessage} parseBadges={parseBadges}/>}
         {tab==="clips"       &&<ClipsPage token={token}/>}
-        {tab==="leaderboard" &&<LeaderboardPage token={token} userInfo={userInfo} isFollower={isFollower} isSub={isSub} subMonths={subMonths}/>}
         {tab==="shop"        &&<ShopPage/>}
       </main>
     </div>
