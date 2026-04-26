@@ -361,6 +361,7 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
         </div>
         <TwitchChat ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges} userInfo={userInfo}/>
       </div>
+      <ActivityTicker token={token}/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,columnGap:28,alignItems:"stretch"}}>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           <GoalCard icon={<Icon.Users/>} label="Followers" value={stats.followers} goal={GOAL_FOLLOWERS} color="#9147ff"/>
@@ -376,7 +377,6 @@ function HomePage({ token, userInfo, ircMessages, connected, sendIRC, parseBadge
           </a>
         </div>
       </div>
-      <ActivityTicker token={token}/>
     </div>
   );
 }
