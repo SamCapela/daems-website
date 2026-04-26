@@ -29,9 +29,7 @@ function useIRCSubMonths(token, username) {
   const wsRef = useRef(null);
 
   useEffect(() => {
-    console.log("IRC hook →", { token: !!token, username });
     if (!token || !username) return;
-    console.log("IRC → connexion WebSocket...");
     const ws = new WebSocket("wss://irc-ws.chat.twitch.tv");
     wsRef.current = ws;
 
@@ -40,7 +38,6 @@ function useIRCSubMonths(token, username) {
       ws.send(`PASS oauth:${token}`);
       ws.send(`NICK ${username.toLowerCase()}`);
       ws.send(`JOIN #${BROADCASTER}`);
-      console.log("IRC → JOIN envoyé pour", username);
     };
 
     ws.onmessage = (e) => {
@@ -59,7 +56,6 @@ function useIRCSubMonths(token, username) {
       };
 
       if (raw.includes("USERSTATE") && raw.includes(`#${BROADCASTER}`)) {
-        console.log("IRC → USERSTATE reçu !");
         const tagStr = raw.startsWith("@") ? raw.slice(1).split(" ")[0] : "";
         if (tagStr) {
           const tags = {};
@@ -67,13 +63,8 @@ function useIRCSubMonths(token, username) {
             const [k, ...rest] = t.split("=");
             tags[k] = rest.join("=") || "";
           });
-          const badgeInfo = tags["badge-info"] || "";
-          console.log("IRC → badge-info:", badgeInfo);
-          const match = badgeInfo.match(/subscriber\/(\d+)/);
-          if (match) {
-            console.log("IRC → subMonths:", parseInt(match[1]));
-            setSubMonths(parseInt(match[1]));
-          }
+          const match = (tags["badge-info"] || "").match(/subscriber\/(\d+)/);
+          if (match) setSubMonths(parseInt(match[1]));
           ws.close();
         }
       }
@@ -603,9 +594,8 @@ export default function App() {
         } catch { setIsFollower(false); }
         try {
           const s = await twitchGet("/subscriptions/user", token, { broadcaster_id: BROADCASTER_ID, user_id: u.id });
-          console.log("sub response:", s);
           setIsSub(Array.isArray(s.data) && s.data.length > 0);
-        } catch(err) { console.log("sub error:", err); setIsSub(false); }
+        } catch { setIsSub(false); }
       })
       .catch(() => { localStorage.removeItem("tw_token"); setToken(null); })
       .finally(() => setBooting(false));
