@@ -295,17 +295,7 @@ function TwitchChat({ ircMessages, connected, sendIRC, parseBadges, userInfo }) 
                     <MiniUserBanner name={msg.displayName} color={msg.color} subMonths={parseInt(msg.subMonths)}/>
                   </span>
                 ) : (
-                  <>
-                    {!msg.isLocal && (
-                      <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
-                        title="S'abonner"
-                        style={{display:"inline-flex",alignItems:"center",gap:2,marginRight:5,padding:"1px 5px",background:"rgba(145,71,255,0.15)",border:"1px solid rgba(145,71,255,0.3)",borderRadius:4,fontSize:"0.6rem",fontWeight:700,color:"#9147ff",textDecoration:"none",verticalAlign:"middle",opacity:0.65,transition:"opacity 0.15s,background 0.15s",lineHeight:1.4,flexShrink:0}}
-                        onMouseEnter={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.background="rgba(145,71,255,0.3)";}}
-                        onMouseLeave={e=>{e.currentTarget.style.opacity="0.65";e.currentTarget.style.background="rgba(145,71,255,0.15)";}}
-                      >⭐ Sub</a>
-                    )}
-                    <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
-                  </>
+                  <span style={{color:msg.color,fontWeight:700,marginRight:4}}>{msg.displayName}</span>
                 )}
                 <span style={{color: msg.isLocal ? "#c0b0ff" : "#d0c8e8"}}>: {msg.text}</span>
               </div>
@@ -648,6 +638,13 @@ export default function App() {
   const subDuration = isSub ? formatSubDuration(subMonths) : null;
   const bannerTier  = getBannerTier(subMonths, isSub);
 
+  // DEBUG ONLY
+  useEffect(() => {
+    window.__forceUnsub = () => setIsSub(false);
+    window.__resetSub   = () => setIsSub(true);
+    return () => { delete window.__forceUnsub; delete window.__resetSub; };
+  }, []);
+
   const login = () => {
     window.location.href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&force_verify=false`;
   };
@@ -709,6 +706,13 @@ export default function App() {
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           {userInfo&&(
             <>
+              {!isSub&&(
+                <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
+                  style={{display:"inline-flex",alignItems:"center",gap:5,padding:"6px 13px",background:"linear-gradient(135deg,#9147ff,#6020c0)",borderRadius:8,fontSize:"0.78rem",fontWeight:700,color:"#fff",textDecoration:"none",boxShadow:"0 2px 10px rgba(145,71,255,0.4)",transition:"box-shadow 0.2s,transform 0.2s",flexShrink:0}}
+                  onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 20px rgba(145,71,255,0.65)";e.currentTarget.style.transform="translateY(-1px)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 2px 10px rgba(145,71,255,0.4)";e.currentTarget.style.transform="";}}
+                ><Icon.Star/>S'abonner</a>
+              )}
               <NameBanner username={userInfo.display_name} tier={bannerTier} size="sm" subDuration={subDuration}/>
               <AvatarMenu userInfo={userInfo} isFollower={isFollower} isSub={isSub} subMonths={subMonths} onLogout={logout}/>
             </>
