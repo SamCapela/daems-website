@@ -448,77 +448,149 @@ function ClipCard({clip}) {
 }
 
 // ── LEADERBOARD ────────────────────────────────────────────────────────────
-function LeaderboardPage({token,userInfo,isFollower,isSub}) {
-  const [followers,setFollowers]=useState([]);
-  const [subs,setSubs]=useState([]);
-  const [loading,setLoading]=useState(true);
+function LeaderboardPage({ token, userInfo, isFollower, isSub, subMonths }) {
+  const [subs, setSubs]     = useState([]);
+  const [bits, setBits]     = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(()=>{
-    if(!token)return;
-    const base=window.location.origin;
+  useEffect(() => {
+    if (!token) return;
+    const base = window.location.origin;
     Promise.all([
-      fetch(`${base}/api/followers`).then(r=>r.json()).then(f=>setFollowers(f.data||[])).catch(()=>{}),
-      fetch(`${base}/api/subscribers`).then(r=>r.json()).then(s=>setSubs(s.data||[])).catch(()=>{}),
-    ]).finally(()=>setLoading(false));
-  },[token]);
+      fetch(`${base}/api/subscribers`).then(r=>r.json()).then(d=>setSubs(d.data||[])).catch(()=>{}),
+      fetch(`${base}/api/bits`).then(r=>r.json()).then(d=>setBits(d.data||[])).catch(()=>{}),
+    ]).finally(() => setLoading(false));
+  }, [token]);
+
+  // Tier → bannière tier
+  const tierToBanner = (tier) => {
+    if (tier === "3000") return 4; // Diamond
+    if (tier === "2000") return 3; // Platinum
+    return 2; // Gold pour T1
+  };
+
+  // Bits rank → bannière
+  const bitsToBanner = (rank) => {
+    if (rank === 0) return 4; // Diamond #1
+    if (rank === 1) return 3; // Platinum #2
+    if (rank <= 4)  return 2; // Gold top 5
+    if (rank <= 9)  return 1; // Silver top 10
+    return 0;                  // Bronze reste
+  };
 
   return (
     <div>
-      {!isFollower&&userInfo&&(
-        <div style={{background:"rgba(255,80,80,0.08)",border:"1px solid rgba(255,80,80,0.25)",borderRadius:12,padding:"14px 20px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{color:"#ff9090",fontSize:"0.88rem"}}>Tu ne suis pas encore <strong style={{color:"#fff"}}>Daems_</strong> !</span>
+      {!isFollower && userInfo && (
+        <div style={{ background:"rgba(255,80,80,0.08)", border:"1px solid rgba(255,80,80,0.25)", borderRadius:12, padding:"14px 20px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ color:"#ff9090", fontSize:"0.88rem" }}>Tu ne suis pas encore <strong style={{ color:"#fff" }}>Daems_</strong> !</span>
           <a href="https://www.twitch.tv/daems_" target="_blank" rel="noreferrer"
-            style={{background:"linear-gradient(135deg,#e91916,#900)",color:"#fff",padding:"7px 18px",borderRadius:20,fontWeight:700,textDecoration:"none",animation:"pulse 1.5s infinite",fontSize:"0.82rem"}}>Suivre 💜</a>
+            style={{ background:"linear-gradient(135deg,#e91916,#900)", color:"#fff", padding:"7px 18px", borderRadius:20, fontWeight:700, textDecoration:"none", animation:"pulse 1.5s infinite", fontSize:"0.82rem" }}>Suivre 💜</a>
         </div>
       )}
-      {!isSub&&userInfo&&(
-        <div style={{background:"rgba(145,71,255,0.08)",border:"1px solid rgba(145,71,255,0.25)",borderRadius:12,padding:"14px 20px",marginBottom:22,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{color:"#bf94ff",fontSize:"0.88rem"}}>Rejoins les abonnés de <strong style={{color:"#fff"}}>Daems_</strong> !</span>
+      {!isSub && userInfo && (
+        <div style={{ background:"rgba(145,71,255,0.08)", border:"1px solid rgba(145,71,255,0.25)", borderRadius:12, padding:"14px 20px", marginBottom:22, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ color:"#bf94ff", fontSize:"0.88rem" }}>Rejoins les abonnés de <strong style={{ color:"#fff" }}>Daems_</strong> !</span>
           <a href={`https://www.twitch.tv/subs/${BROADCASTER}`} target="_blank" rel="noreferrer"
-            style={{background:"linear-gradient(135deg,#9147ff,#5010b0)",color:"#fff",padding:"7px 18px",borderRadius:20,fontWeight:700,textDecoration:"none",animation:"pulse 1.5s infinite",fontSize:"0.82rem"}}>S'abonner ⭐</a>
+            style={{ background:"linear-gradient(135deg,#9147ff,#5010b0)", color:"#fff", padding:"7px 18px", borderRadius:20, fontWeight:700, textDecoration:"none", animation:"pulse 1.5s infinite", fontSize:"0.82rem" }}>S'abonner ⭐</a>
         </div>
       )}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:22}}>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:28 }}>
+        {/* TOP SUBS */}
         <div>
-          <h3 style={{color:"#e0d0ff",fontWeight:700,marginBottom:14,fontSize:"0.85rem",textTransform:"uppercase",letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{color:"#e91916"}}><Icon.Heart/></span> Top 30 anciens followers
+          <h3 style={{ color:"#e0d0ff", fontWeight:700, marginBottom:18, fontSize:"0.85rem", textTransform:"uppercase", letterSpacing:"0.1em", display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ color:"#f59e0b" }}><Icon.Star /></span> Top 20 Abonnés
           </h3>
-          {loading?<LoadSpinner/>:followers.length===0?(
-            <p style={{color:"#505070",fontSize:"0.82rem"}}>En attente du token broadcaster…</p>
-          ):(
-            <div style={{display:"flex",flexDirection:"column",gap:5}}>
-              {followers.slice(0,30).map((f,i)=>(
-                <LeaderRow key={f.user_id} rank={i+1} name={f.user_name} sub={new Date(f.followed_at).toLocaleDateString("fr-FR")} highlight={userInfo?.id===f.user_id} accent="#9147ff"/>
-              ))}
+          {loading ? <LoadSpinner /> : subs.length === 0 ? (
+            <p style={{ color:"#505070", fontSize:"0.82rem" }}>En attente du token broadcaster…</p>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {subs.map((s, i) => {
+                const bTier = tierToBanner(s.tier);
+                const bs    = bannerStyles[bTier];
+                const isMe  = userInfo?.id === s.user_id;
+                const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":null;
+                return (
+                  <div key={s.user_id} style={{
+                    display:"flex", alignItems:"center", gap:12, padding:"8px 12px",
+                    borderRadius:11, background: isMe ? "rgba(145,71,255,0.12)" : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${isMe ? "rgba(145,71,255,0.4)" : "rgba(255,255,255,0.05)"}`,
+                  }}>
+                    <span style={{ width:28, textAlign:"center", fontSize:"0.8rem", color:"#505070", fontWeight:700, flexShrink:0 }}>{medal||`#${i+1}`}</span>
+                    {/* Mini bannière */}
+                    <div style={{
+                      position:"relative", flexShrink:0,
+                      background:bs.bg, border:bs.border, borderRadius:7,
+                      boxShadow:bs.shadow, padding:"3px 12px",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      minWidth:110, height:28, overflow:"hidden",
+                    }}>
+                      {bs.shimmer && <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.12) 50%,transparent 62%)", animation:"shimmer 2.5s infinite" }}/>}
+                      <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{s.user_name}</span>
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+                        <span style={{ fontSize:"0.68rem", color:"#f59e0b", background:"rgba(245,158,11,0.15)", borderRadius:5, padding:"1px 6px", fontWeight:700 }}>
+                          T{s.tier[0]}{s.is_gift ? " 🎁" : ""}
+                        </span>
+                        {s.followed_at && (
+                          <span style={{ fontSize:"0.65rem", color:"#505070" }}>
+                            follow {new Date(s.followed_at).toLocaleDateString("fr-FR", { year:"2-digit", month:"short" })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
+
+        {/* TOP BITS */}
         <div>
-          <h3 style={{color:"#e0d0ff",fontWeight:700,marginBottom:14,fontSize:"0.85rem",textTransform:"uppercase",letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{color:"#f59e0b"}}><Icon.Star/></span> Top 30 abonnés
+          <h3 style={{ color:"#e0d0ff", fontWeight:700, marginBottom:18, fontSize:"0.85rem", textTransform:"uppercase", letterSpacing:"0.1em", display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ color:"#9147ff" }}>💜</span> Top 20 Bits
           </h3>
-          {loading?<LoadSpinner/>:subs.length===0?(
-            <p style={{color:"#505070",fontSize:"0.82rem"}}>En attente du token broadcaster…</p>
-          ):(
-            <div style={{display:"flex",flexDirection:"column",gap:5}}>
-              {subs.slice(0,30).map((s,i)=>(
-                <LeaderRow key={s.user_id} rank={i+1} name={s.user_name} sub={`Tier ${s.tier?.[0]||1}${s.is_gift?" · Gift":""}`} highlight={userInfo?.id===s.user_id} accent="#f59e0b"/>
-              ))}
+          {loading ? <LoadSpinner /> : bits.length === 0 ? (
+            <p style={{ color:"#505070", fontSize:"0.82rem" }}>Aucune donnée de bits disponible.</p>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {bits.map((b, i) => {
+                const bTier = bitsToBanner(i);
+                const bs    = bannerStyles[bTier];
+                const isMe  = userInfo?.id === b.user_id;
+                const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":null;
+                return (
+                  <div key={b.user_id} style={{
+                    display:"flex", alignItems:"center", gap:12, padding:"8px 12px",
+                    borderRadius:11, background: isMe ? "rgba(145,71,255,0.12)" : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${isMe ? "rgba(145,71,255,0.4)" : "rgba(255,255,255,0.05)"}`,
+                  }}>
+                    <span style={{ width:28, textAlign:"center", fontSize:"0.8rem", color:"#505070", fontWeight:700, flexShrink:0 }}>{medal||`#${i+1}`}</span>
+                    {/* Mini bannière */}
+                    <div style={{
+                      position:"relative", flexShrink:0,
+                      background:bs.bg, border:bs.border, borderRadius:7,
+                      boxShadow:bs.shadow, padding:"3px 12px",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      minWidth:110, height:28, overflow:"hidden",
+                    }}>
+                      {bs.shimmer && <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 38%,rgba(80,180,255,0.12) 50%,transparent 62%)", animation:"shimmer 2.5s infinite" }}/>}
+                      <span style={{ color:bs.textColor, fontFamily:"'Cinzel',serif", fontWeight:700, fontSize:"0.72rem", letterSpacing:"0.06em", textShadow:bs.textShadow, zIndex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:100 }}>{b.user_name}</span>
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <span style={{ fontSize:"0.72rem", color:"#9147ff", fontWeight:700 }}>
+                        💜 {b.score.toLocaleString("fr-FR")} bits
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function LeaderRow({rank,name,sub,highlight,accent}) {
-  const medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":null;
-  return (
-    <div style={{display:"flex",alignItems:"center",gap:10,padding:"7px 13px",borderRadius:9,background:highlight?`${accent}18`:"rgba(255,255,255,0.025)",border:`1px solid ${highlight?accent+"55":"rgba(255,255,255,0.05)"}`}}>
-      <span style={{width:26,textAlign:"right",fontSize:"0.76rem",color:"#505070",fontWeight:700,flexShrink:0}}>{medal||`#${rank}`}</span>
-      <span style={{flex:1,color:highlight?"#fff":"#b8a8d8",fontWeight:highlight?700:400,fontSize:"0.87rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{name}</span>
-      <span style={{fontSize:"0.7rem",color:"#505070",flexShrink:0}}>{sub}</span>
     </div>
   );
 }
@@ -749,7 +821,7 @@ export default function App() {
       <main style={{paddingTop:80,padding:"96px 28px 48px",maxWidth:1280,margin:"0 auto",width:"100%"}}>
         {tab==="home"        &&<HomePage token={token} userInfo={userInfo} messages={messages} connected={connected} sendMessage={sendMessage} parseBadges={parseBadges}/>}
         {tab==="clips"       &&<ClipsPage token={token}/>}
-        {tab==="leaderboard" &&<LeaderboardPage token={token} userInfo={userInfo} isFollower={isFollower} isSub={isSub}/>}
+        {tab==="leaderboard" &&<LeaderboardPage token={token} userInfo={userInfo} isFollower={isFollower} isSub={isSub} subMonths={subMonths}/>}
         {tab==="shop"        &&<ShopPage/>}
       </main>
     </div>
