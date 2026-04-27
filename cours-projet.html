@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cours — daems-site</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #9147ff;
+      --purple-light: #bf94ff;
+      --purple-dark: #6020c0;
+      --bg: #0e0e10;
+      --bg2: #13131f;
+      --bg3: #1a1a2e;
+      --text: #efeff1;
+      --text-muted: #808090;
+      --border: rgba(145,71,255,0.2);
+      --green: #00e676;
+      --yellow: #f59e0b;
+      --red: #ff5252;
+      --blue: #3a9aff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    /* ── SIDEBAR ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 250px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+    }
+
+    .sidebar-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #9147ff, #bf94ff, #ff79c6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .nav-section { font-size: 0.62rem; font-weight: 800; color: #404060; text-transform: uppercase; letter-spacing: 0.15em; padding: 14px 20px 6px; }
+
+    .nav-link {
+      display: block;
+      padding: 7px 20px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--purple-light); border-left-color: var(--purple); background: rgba(145,71,255,0.07); }
+
+    /* ── MAIN ── */
+    .main { flex: 1; padding: 56px 64px; max-width: 960px; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 60px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 56px;
+    }
+    .hero-logo {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 3.2rem;
+      background: linear-gradient(135deg, #9147ff 0%, #bf94ff 55%, #ff79c6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 24px rgba(145,71,255,0.4));
+      letter-spacing: 0.06em;
+    }
+    .hero-sub { color: var(--text-muted); margin-top: 8px; font-size: 0.95rem; }
+    .hero-badges { display: flex; gap: 8px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+    .badge {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .badge-purple { background: rgba(145,71,255,0.2); border: 1px solid rgba(145,71,255,0.4); color: var(--purple-light); }
+    .badge-green  { background: rgba(0,230,118,0.12); border: 1px solid rgba(0,230,118,0.3); color: var(--green); }
+    .badge-yellow { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--yellow); }
+    .badge-blue   { background: rgba(58,154,255,0.12); border: 1px solid rgba(58,154,255,0.3); color: var(--blue); }
+
+    /* ── SECTIONS ── */
+    section { margin-bottom: 72px; scroll-margin-top: 24px; }
+
+    h2 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .section-line { height: 1px; background: var(--border); margin: 14px 0 24px; }
+
+    h3 { font-size: 1rem; font-weight: 700; color: var(--purple-light); margin: 28px 0 10px; }
+
+    p { color: #c8c0e0; margin-bottom: 14px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .card-title { font-weight: 700; color: #fff; margin-bottom: 6px; font-size: 0.95rem; }
+    .card p { margin-bottom: 0; font-size: 0.88rem; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* ── CODE ── */
+    pre, code {
+      font-family: 'Fira Code', 'Consolas', monospace;
+    }
+    code {
+      background: rgba(145,71,255,0.12);
+      border: 1px solid rgba(145,71,255,0.2);
+      border-radius: 5px;
+      padding: 1px 7px;
+      font-size: 0.83em;
+      color: var(--purple-light);
+    }
+    pre {
+      background: #0a0a14;
+      border: 1px solid rgba(145,71,255,0.18);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-size: 0.82rem;
+      overflow-x: auto;
+      margin: 16px 0;
+      line-height: 1.7;
+      color: #d0c8e8;
+    }
+    .cm  { color: #606080; font-style: italic; }   /* comment */
+    .kw  { color: #bf94ff; }                        /* keyword */
+    .fn  { color: #79c0ff; }                        /* function */
+    .st  { color: #a5d6ff; }                        /* string */
+    .cn  { color: #ffa657; }                        /* constant */
+    .op  { color: #ff7b72; }                        /* operator / tag */
+    .num { color: #f2cc60; }                        /* number */
+
+    /* ── FLOW DIAGRAM ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .flow-box {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--purple-light);
+      white-space: nowrap;
+    }
+    .flow-box.highlight { background: rgba(145,71,255,0.18); border-color: rgba(145,71,255,0.5); color: #fff; }
+    .flow-arrow { color: #404060; font-size: 1.1rem; padding: 0 8px; }
+
+    /* ── TIER TABLE ── */
+    .tier-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.85rem; }
+    .tier-table th { text-align: left; padding: 10px 14px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .tier-table td { padding: 10px 14px; border-bottom: 1px solid rgba(145,71,255,0.08); vertical-align: middle; }
+    .tier-table tr:last-child td { border-bottom: none; }
+
+    .tier-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+
+    /* ── API ROUTE PILLS ── */
+    .route {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin: 4px 0;
+      font-size: 0.82rem;
+      width: 100%;
+    }
+    .method { font-family: 'Fira Code', monospace; font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; }
+    .method.get  { background: rgba(0,230,118,0.15); color: var(--green); }
+    .method.post { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .route-path  { font-family: 'Fira Code', monospace; color: var(--purple-light); font-size: 0.82rem; }
+    .route-desc  { color: var(--text-muted); margin-left: auto; font-size: 0.78rem; }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-left: 3px solid;
+      border-radius: 0 10px 10px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.88rem;
+    }
+    .callout-info  { border-color: var(--blue);   background: rgba(58,154,255,0.07);  color: #a0c8ff; }
+    .callout-tip   { border-color: var(--green);  background: rgba(0,230,118,0.07);   color: #80e8aa; }
+    .callout-warn  { border-color: var(--yellow); background: rgba(245,158,11,0.07);  color: #f0c060; }
+
+    .callout strong { font-weight: 700; color: #fff; }
+
+    /* ── LIST ── */
+    ul.styled { padding-left: 0; list-style: none; }
+    ul.styled li { padding: 5px 0 5px 20px; position: relative; color: #c0b8d8; font-size: 0.9rem; }
+    ul.styled li::before { content: "▸"; color: var(--purple); position: absolute; left: 0; }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: #303050; font-size: 0.78rem; margin-top: 40px; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: rgba(145,71,255,0.3); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 24px; }
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-title">DAEMS_ SITE</div>
+
+    <div class="nav-section">Vue d'ensemble</div>
+    <a href="#intro" class="nav-link">Introduction</a>
+    <a href="#stack" class="nav-link">Stack technique</a>
+    <a href="#archi" class="nav-link">Architecture</a>
+
+    <div class="nav-section">Frontend</div>
+    <a href="#oauth" class="nav-link">OAuth Twitch</a>
+    <a href="#irc" class="nav-link">Chat IRC WebSocket</a>
+    <a href="#banniere" class="nav-link">Bannières de rang</a>
+    <a href="#composants" class="nav-link">Composants</a>
+    <a href="#style" class="nav-link">Styling inline</a>
+
+    <div class="nav-section">Backend</div>
+    <a href="#api" class="nav-link">Routes API Vercel</a>
+    <a href="#kv" class="nav-link">Upstash KV</a>
+
+    <div class="nav-section">Concepts clés</div>
+    <a href="#hooks" class="nav-link">Custom hooks</a>
+    <a href="#ui-patterns" class="nav-link">Patterns UI</a>
+    <a href="#deploy" class="nav-link">Déploiement</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-logo">DAEMS_</div>
+      <p class="hero-sub">Site communautaire pour le streamer Twitch daems_</p>
+      <div class="hero-badges">
+        <span class="badge badge-purple">React 19</span>
+        <span class="badge badge-green">Vite 8</span>
+        <span class="badge badge-yellow">Vercel Serverless</span>
+        <span class="badge badge-blue">Twitch API</span>
+        <span class="badge badge-purple">Upstash KV</span>
+        <span class="badge badge-green">IRC WebSocket</span>
+      </div>
+    </div>
+
+    <!-- 1. INTRO -->
+    <section id="intro">
+      <h2><span class="num">1</span> Introduction</h2>
+      <div class="section-line"></div>
+      <p>
+        <strong style="color:#fff">daems-site</strong> est un site fan non officiel pour le streamer Twitch <code>daems_</code>.
+        Il permet à la communauté de se connecter avec leur compte Twitch, de voir le stream en direct, de parcourir les clips récents,
+        de chatter en temps réel, et de voir leur bannière personnalisée selon leur durée d'abonnement.
+      </p>
+      <p>
+        Ce projet est un bon exemple d'une SPA (Single Page Application) moderne qui combine une API tierce (Twitch),
+        des WebSockets, du serverless, et une base de données clé-valeur dans le cloud.
+      </p>
+      <div class="callout callout-info">
+        <strong>Objectif pédagogique :</strong> Comprendre comment construire une app web complète en partant de zéro —
+        de l'authentification OAuth au déploiement serverless, en passant par la gestion d'état React et les protocoles réseau.
+      </div>
+    </section>
+
+    <!-- 2. STACK -->
+    <section id="stack">
+      <h2><span class="num">2</span> Stack technique</h2>
+      <div class="section-line"></div>
+      <div class="grid3">
+        <div class="card">
+          <div class="card-title">⚛️ React 19</div>
+          <p>UI déclarative. Tous les composants sont dans <code>src/App.jsx</code> — architecture "single-file".</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Vite 8</div>
+          <p>Build tool ultra-rapide. Dev server avec HMR (Hot Module Replacement) instantané.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">▲ Vercel</div>
+          <p>Hébergement du frontend + exécution des fonctions serverless dans <code>api/</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🟣 Twitch API</div>
+          <p>Helix REST API pour les données (clips, subs, followers) + IRC WebSocket pour le chat.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ Upstash KV</div>
+          <p>Redis serverless dans le cloud. Stocke les viewers, leaderboards via <code>@vercel/kv</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🎨 CSS inline</div>
+          <p>Zéro framework CSS. Tous les styles sont des objets JS directement sur les éléments React.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ARCHI -->
+    <section id="archi">
+      <h2><span class="num">3</span> Architecture</h2>
+      <div class="section-line"></div>
+      <p>L'app est une SPA : une seule page HTML chargée, la navigation se fait côté client en changeant l'état <code>tab</code> dans React.</p>
+
+      <div class="flow">
+        <div class="flow-box highlight">Navigateur</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Vite (dev) / Vercel (prod)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">React SPA</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">API routes <code>/api/*</code></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Twitch API + Upstash</div>
+      </div>
+
+      <h3>Structure des fichiers</h3>
+      <pre><span class="cm">daems-site/</span>
+├── <span class="cn">src/</span>
+│   ├── <span class="st">App.jsx</span>        <span class="cm">← TOUT le frontend (~700 lignes)</span>
+│   └── <span class="st">main.jsx</span>       <span class="cm">← Point d'entrée React</span>
+├── <span class="cn">api/</span>
+│   ├── <span class="st">store-viewer.js</span>    <span class="cm">← Sauvegarde viewer en KV</span>
+│   ├── <span class="st">recent-activity.js</span> <span class="cm">← Subs + bits récents</span>
+│   ├── <span class="st">subscribers.js</span>     <span class="cm">← Liste des abonnés triée</span>
+│   ├── <span class="st">sub-count.js</span>       <span class="cm">← Nombre total de subs</span>
+│   ├── <span class="st">followers.js</span>       <span class="cm">← Nombre de followers</span>
+│   ├── <span class="st">bits.js</span>            <span class="cm">← Leaderboard bits</span>
+│   └── <span class="st">save-token.js</span>      <span class="cm">← Route admin (ADMIN_SECRET)</span>
+├── <span class="cn">public/</span>            <span class="cm">← favicon, icônes SVG</span>
+└── <span class="st">index.html</span>         <span class="cm">← Shell HTML (juste &lt;div id="root"&gt;)</span></pre>
+
+      <div class="callout callout-tip">
+        <strong>Design "single-file" :</strong> Mettre tout dans <code>App.jsx</code> simplifie le développement solo.
+        Pour une équipe, on découperait en fichiers séparés par composant.
+      </div>
+    </section>
+
+    <!-- 4. OAUTH -->
+    <section id="oauth">
+      <h2><span class="num">4</span> OAuth Twitch — Connexion</h2>
+      <div class="section-line"></div>
+      <p>
+        Twitch utilise le protocole <strong style="color:#fff">OAuth 2.0</strong>. On utilise ici le flux
+        <strong style="color:#fff">Implicit Grant</strong> : le token d'accès est retourné directement dans l'URL (fragment <code>#</code>),
+        sans passer par un serveur backend pour l'échange de code.
+      </p>
+
+      <div class="flow" style="flex-direction:column; align-items:flex-start; gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="flow-box">1. Clic "Se connecter"</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box highlight">Redirection vers <code>id.twitch.tv/oauth2/authorize</code></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="flow-box">2. Utilisateur accepte les scopes</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box highlight">Twitch redirige vers <code>/?#access_token=xxx</code></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="flow-box">3. React lit le hash URL</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box highlight">Token stocké dans <code>localStorage</code></div>
+        </div>
+      </div>
+
+      <h3>Code de connexion</h3>
+      <pre><span class="cm">// Scopes demandés à Twitch</span>
+<span class="kw">const</span> SCOPES = [
+  <span class="st">"user:read:email"</span>,
+  <span class="st">"user:read:follows"</span>,
+  <span class="st">"user:read:subscriptions"</span>,
+  <span class="st">"chat:read"</span>,
+  <span class="st">"chat:edit"</span>
+].join(<span class="st">" "</span>);
+
+<span class="cm">// Redirection vers Twitch</span>
+<span class="kw">const</span> login = () => {
+  window.location.href = <span class="st">`https://id.twitch.tv/oauth2/authorize
+    ?response_type=token
+    &client_id=${CLIENT_ID}
+    &redirect_uri=${encodeURIComponent(REDIRECT_URI)}
+    &scope=${encodeURIComponent(SCOPES)}`</span>;
+};
+
+<span class="cm">// Lecture du token dans le hash URL au chargement</span>
+<span class="fn">useEffect</span>(() => {
+  <span class="kw">const</span> hash = window.location.hash;
+  <span class="kw">if</span> (hash.includes(<span class="st">"access_token="</span>)) {
+    <span class="kw">const</span> p = <span class="kw">new</span> <span class="fn">URLSearchParams</span>(hash.slice(<span class="num">1</span>));
+    <span class="kw">const</span> t = p.get(<span class="st">"access_token"</span>);
+    <span class="kw">if</span> (t) {
+      localStorage.setItem(<span class="st">"tw_token"</span>, t);
+      setToken(t);
+      window.history.replaceState(<span class="kw">null</span>, <span class="st">""</span>, window.location.pathname);
+    }
+  }
+}, []);</pre>
+
+      <h3>Ce qu'on apprend</h3>
+      <ul class="styled">
+        <li>Comment fonctionne OAuth 2.0 Implicit Grant</li>
+        <li>Lire des paramètres dans le hash de l'URL (<code>window.location.hash</code>)</li>
+        <li>Persister un token dans <code>localStorage</code> pour ne pas se reconnecter à chaque visite</li>
+        <li>Nettoyer l'URL avec <code>history.replaceState</code> après extraction du token</li>
+      </ul>
+    </section>
+
+    <!-- 5. IRC -->
+    <section id="irc">
+      <h2><span class="num">5</span> Chat IRC — WebSocket</h2>
+      <div class="section-line"></div>
+      <p>
+        Twitch Chat utilise le protocole <strong style="color:#fff">IRC</strong> (Internet Relay Chat) exposé via WebSocket.
+        Toute la logique est dans le hook <code>useIRC</code>, qui gère la connexion, le parsing des messages, les badges et les notifications système.
+      </p>
+
+      <h3>Cycle de vie du WebSocket</h3>
+      <pre><span class="kw">const</span> ws = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="st">"wss://irc-ws.chat.twitch.tv"</span>);
+
+ws.onopen = () => {
+  <span class="cm">// Demande les tags enrichis (badges, couleurs, timestamps…)</span>
+  ws.send(<span class="st">"CAP REQ :twitch.tv/tags twitch.tv/commands"</span>);
+  ws.send(<span class="st">`PASS oauth:${token}`</span>);
+  ws.send(<span class="st">`NICK ${username}`</span>);
+  ws.send(<span class="st">`JOIN #daems_`</span>);  <span class="cm">// rejoindre le channel</span>
+};
+
+ws.onmessage = (e) => {
+  <span class="cm">// Répondre aux PING pour maintenir la connexion</span>
+  <span class="kw">if</span> (raw.startsWith(<span class="st">"PING"</span>)) ws.send(<span class="st">"PONG :tmi.twitch.tv"</span>);
+
+  <span class="cm">// Parser les messages PRIVMSG (messages du chat)</span>
+  <span class="kw">if</span> (raw.includes(<span class="st">"PRIVMSG"</span>)) { <span class="cm">/* ... extraction des données ... */</span> }
+
+  <span class="cm">// USERNOTICE = événements (sub, raid, etc.)</span>
+  <span class="kw">if</span> (raw.includes(<span class="st">"USERNOTICE"</span>)) { <span class="cm">/* ... message système ... */</span> }
+};</pre>
+
+      <h3>Parsing des tags IRC</h3>
+      <p>Twitch envoie des métadonnées riches dans les <strong style="color:#fff">tags IRC</strong>, préfixés par <code>@</code> :</p>
+      <pre><span class="cm">// Format brut d'un message IRC Twitch :</span>
+<span class="st">@badge-info=subscriber/14;badges=subscriber/12;color=#FF4500;
+ display-name=SamUser;id=abc-123;mod=0;
+ PRIVMSG #daems_ :Gg ez !</span>
+
+<span class="cm">// Fonction de parsing :</span>
+<span class="kw">const</span> parseTags = (str) => {
+  <span class="kw">const</span> tags = {};
+  str.split(<span class="st">";"</span>).forEach(t => {
+    <span class="kw">const</span> [k, ...rest] = t.split(<span class="st">"="</span>);
+    tags[k] = rest.join(<span class="st">"="</span>) || <span class="st">""</span>;
+  });
+  <span class="kw">return</span> tags;
+};</pre>
+
+      <h3>Messages locaux (optimistic UI)</h3>
+      <p>
+        Quand l'utilisateur envoie un message, il ne reçoit pas son propre message via IRC immédiatement.
+        La solution : ajouter le message <strong style="color:#fff">localement</strong> tout de suite, puis l'IRC le confirme.
+      </p>
+      <pre><span class="kw">const</span> send = () => {
+  <span class="kw">const</span> sent = sendIRC(input.trim());
+  <span class="kw">if</span> (sent) {
+    <span class="cm">// Ajout local immédiat (pas besoin d'attendre l'IRC)</span>
+    setLocalMessages(prev => [...prev, {
+      id: <span class="st">`local-${Date.now()}`</span>,
+      displayName: userInfo.display_name,
+      text: input.trim(),
+      isLocal: <span class="kw">true</span>,
+      ts: Date.now(),
+    }]);
+  }
+};
+
+<span class="cm">// Fusion IRC + local, déduplication par texte</span>
+<span class="kw">const</span> ircTexts = <span class="kw">new</span> <span class="fn">Set</span>(ircMessages.map(m => m.text));
+<span class="kw">const</span> filteredLocal = localMessages.filter(m => !ircTexts.has(m.text));</pre>
+
+      <div class="callout callout-tip">
+        <strong>Optimistic UI :</strong> On affiche le résultat attendu avant la confirmation serveur pour donner une sensation de réactivité immédiate.
+        Technique courante dans les apps de messagerie (Slack, WhatsApp…).
+      </div>
+    </section>
+
+    <!-- 6. BANNIERE -->
+    <section id="banniere">
+      <h2><span class="num">6</span> Bannières de rang</h2>
+      <div class="section-line"></div>
+      <p>
+        Chaque viewer connecté reçoit une bannière personnalisée selon son nombre de mois d'abonnement,
+        récupéré via le tag IRC <code>badge-info=subscriber/N</code>.
+      </p>
+
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Mois</th>
+            <th>Rang</th>
+            <th>Étoiles</th>
+            <th>Spécial</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tier-dot" style="background:#C8956C"></span>0</td>
+            <td>–</td>
+            <td style="color:#C8956C">Bronze</td>
+            <td>⭐</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot" style="background:#BDD0E0"></span>1</td>
+            <td>0–2 mois</td>
+            <td style="color:#BDD0E0">Silver</td>
+            <td>⭐⭐</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot" style="background:#FFD700"></span>2</td>
+            <td>3–5 mois</td>
+            <td style="color:#FFD700">Gold</td>
+            <td>⭐⭐⭐</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot" style="background:#C0A0F0"></span>3</td>
+            <td>6–11 mois</td>
+            <td style="color:#C0A0F0">Platinum</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td><span class="tier-dot" style="background:#3A9AFF"></span>4</td>
+            <td>12+ mois</td>
+            <td style="color:#3A9AFF">Diamond</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>✨ Shimmer animé</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Logique de calcul du tier</h3>
+      <pre><span class="kw">function</span> <span class="fn">getBannerTier</span>(subMonths, isSub) {
+  <span class="kw">if</span> (!isSub || subMonths === <span class="kw">null</span>) <span class="kw">return</span> <span class="num">0</span>;  <span class="cm">// Bronze (pas sub)</span>
+  <span class="kw">if</span> (subMonths < <span class="num">3</span>)  <span class="kw">return</span> <span class="num">1</span>;               <span class="cm">// Silver</span>
+  <span class="kw">if</span> (subMonths < <span class="num">6</span>)  <span class="kw">return</span> <span class="num">2</span>;               <span class="cm">// Gold</span>
+  <span class="kw">if</span> (subMonths < <span class="num">12</span>) <span class="kw">return</span> <span class="num">3</span>;               <span class="cm">// Platinum</span>
+  <span class="kw">return</span> <span class="num">4</span>;                                    <span class="cm">// Diamond</span>
+}</pre>
+
+      <h3>Animation shimmer Diamond</h3>
+      <pre><span class="cm">/* CSS injecté via &lt;style&gt; */</span>
+@<span class="kw">keyframes</span> shimmer {
+  <span class="num">0%</span>   { transform: translateX(<span class="cn">-100%</span>); }
+  <span class="num">100%</span> { transform: translateX(<span class="cn">200%</span>); }
+}
+
+<span class="cm">/* Appliqué sur le fond de la bannière Diamond */</span>
+{
+  background: <span class="st">"linear-gradient(105deg, transparent 38%, rgba(80,180,255,0.12) 50%, transparent 62%)"</span>,
+  animation: <span class="st">"shimmer 2.5s infinite"</span>
+}</pre>
+    </section>
+
+    <!-- 7. COMPOSANTS -->
+    <section id="composants">
+      <h2><span class="num">7</span> Composants React</h2>
+      <div class="section-line"></div>
+      <p>L'architecture suit le pattern <strong style="color:#fff">composition</strong> : les composants parents passent les données aux enfants via props.</p>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">🏠 HomePage</div>
+          <p>Player Twitch embedded (iframe), chat IRC, stats (followers/subs), ticker d'activité récente.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🎬 ClipsPage</div>
+          <p>Grille de clips Twitch avec filtres temporels (semaine / mois) et pagination par curseur.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">💬 TwitchChat</div>
+          <p>Chat temps réel. Gère les messages IRC, les locaux, les badges, le scroll automatique.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🏷️ NameBanner</div>
+          <p>Bannière personnalisée avec dégradé selon le tier, étoiles, durée d'abonnement.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">👤 AvatarMenu</div>
+          <p>Menu dropdown avec avatar, statut follow/sub, lien profil Twitch, déconnexion.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">📣 ActivityTicker</div>
+          <p>Bannière défilante (CSS animation) affichant les derniers subs et bits de la semaine.</p>
+        </div>
+      </div>
+
+      <h3>Patron de navigation sans router</h3>
+      <pre><span class="cm">// Navigation : simple état React, pas de React Router</span>
+<span class="kw">const</span> [tab, setTab] = <span class="fn">useState</span>(<span class="st">"home"</span>);
+
+<span class="cm">// Rendu conditionnel selon l'onglet actif</span>
+{tab === <span class="st">"home"</span>  && <span class="op">&lt;HomePage</span>  {...props} <span class="op">/&gt;</span>}
+{tab === <span class="st">"clips"</span> && <span class="op">&lt;ClipsPage</span> token={token} <span class="op">/&gt;</span>}
+{tab === <span class="st">"shop"</span>  && <span class="op">&lt;ShopPage</span>  <span class="op">/&gt;</span>}</pre>
+    </section>
+
+    <!-- 8. STYLE -->
+    <section id="style">
+      <h2><span class="num">8</span> Styling — CSS inline</h2>
+      <div class="section-line"></div>
+      <p>
+        Tout le style est écrit en <strong style="color:#fff">objets JavaScript</strong> passés à la prop <code>style</code>.
+        Pas de classes CSS, pas de framework comme Tailwind ou Bootstrap.
+      </p>
+
+      <h3>Avantages / inconvénients</h3>
+      <div class="grid2">
+        <div class="card" style="border-color: rgba(0,230,118,0.2);">
+          <div class="card-title" style="color: var(--green)">✅ Avantages</div>
+          <p>
+            Styles colocalisés avec le composant. Pas de conflit de classes CSS.
+            Valeurs dynamiques faciles (couleur selon le tier, etc.).
+          </p>
+        </div>
+        <div class="card" style="border-color: rgba(255,82,82,0.2);">
+          <div class="card-title" style="color: var(--red)">⚠️ Inconvénients</div>
+          <p>
+            Impossible d'utiliser des pseudo-classes (<code>:hover</code>) directement.
+            Verbose pour les gros composants.
+          </p>
+        </div>
+      </div>
+
+      <h3>Contournement pour le hover</h3>
+      <pre><span class="cm">// Solution : événements onMouseEnter / onMouseLeave</span>
+<span class="op">&lt;div</span>
+  onMouseEnter={e => { e.currentTarget.style.transform = <span class="st">"translateY(-4px)"</span>; }}
+  onMouseLeave={e => { e.currentTarget.style.transform = <span class="st">""</span>; }}
+<span class="op">&gt;</span></pre>
+
+      <h3>Animations CSS globales</h3>
+      <p>Les keyframes CSS (impossibles en inline) sont injectées via une balise <code>&lt;style&gt;</code> dans le JSX :</p>
+      <pre><span class="kw">const</span> CSS = <span class="st">`
+  @keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+  @keyframes pulse { ... }
+  @keyframes spin  { to { transform: rotate(360deg); } }
+  @keyframes ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+`</span>;
+
+<span class="cm">// Injection dans le DOM</span>
+<span class="kw">return</span> (
+  <span class="op">&lt;div&gt;</span>
+    <span class="op">&lt;style&gt;</span>{CSS}<span class="op">&lt;/style&gt;</span>
+    ...
+  <span class="op">&lt;/div&gt;</span>
+);</pre>
+    </section>
+
+    <!-- 9. API -->
+    <section id="api">
+      <h2><span class="num">9</span> Routes API Vercel</h2>
+      <div class="section-line"></div>
+      <p>
+        Chaque fichier dans <code>api/</code> devient automatiquement une fonction serverless sur Vercel
+        accessible à l'URL <code>/api/nom-du-fichier</code>.
+      </p>
+
+      <div class="callout callout-warn">
+        <strong>Pourquoi un backend ?</strong> Certains appels Twitch nécessitent un token de broadcaster
+        (accès aux listes de subs). Ce token NE peut PAS être exposé côté client — il doit rester dans les
+        variables d'environnement Vercel.
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin:16px 0;">
+        <div class="route">
+          <span class="method post">POST</span>
+          <span class="route-path">/api/store-viewer</span>
+          <span class="route-desc">Sauvegarde viewer + sub_months dans KV</span>
+        </div>
+        <div class="route">
+          <span class="method get">GET</span>
+          <span class="route-path">/api/recent-activity</span>
+          <span class="route-desc">Derniers subs + top bits de la semaine</span>
+        </div>
+        <div class="route">
+          <span class="method get">GET</span>
+          <span class="route-path">/api/subscribers</span>
+          <span class="route-desc">Liste triée (tier, ancienneté follow)</span>
+        </div>
+        <div class="route">
+          <span class="method get">GET</span>
+          <span class="route-path">/api/sub-count</span>
+          <span class="route-desc">Nombre total d'abonnés</span>
+        </div>
+        <div class="route">
+          <span class="method get">GET</span>
+          <span class="route-path">/api/followers</span>
+          <span class="route-desc">Nombre de followers</span>
+        </div>
+        <div class="route">
+          <span class="method get">GET</span>
+          <span class="route-path">/api/bits</span>
+          <span class="route-desc">Leaderboard bits</span>
+        </div>
+        <div class="route">
+          <span class="method post">POST</span>
+          <span class="route-path">/api/save-token</span>
+          <span class="route-desc">Admin : sauvegarde broadcaster token (protégé par ADMIN_SECRET)</span>
+        </div>
+      </div>
+
+      <h3>Structure d'un handler Vercel</h3>
+      <pre><span class="kw">export default async function</span> <span class="fn">handler</span>(req, res) {
+  <span class="cm">// 1. Headers CORS (permettre les appels depuis le frontend)</span>
+  res.setHeader(<span class="st">"Access-Control-Allow-Origin"</span>, <span class="st">"*"</span>);
+
+  <span class="cm">// 2. Token broadcaster depuis les env vars (jamais dans le code !)</span>
+  <span class="kw">const</span> token = process.env.BROADCASTER_TOKEN;
+  <span class="kw">if</span> (!token) <span class="kw">return</span> res.status(<span class="num">500</span>).json({ error: <span class="st">"Token manquant"</span> });
+
+  <span class="cm">// 3. Appel Twitch Helix API</span>
+  <span class="kw">const</span> r = <span class="kw">await</span> fetch(<span class="st">"https://api.twitch.tv/helix/..."</span>, {
+    headers: { <span class="st">"Authorization"</span>: <span class="st">`Bearer ${token}`</span>, <span class="st">"Client-Id"</span>: CLIENT_ID }
+  });
+
+  <span class="cm">// 4. Retourner la réponse JSON</span>
+  <span class="kw">return</span> res.status(<span class="num">200</span>).json(await r.json());
+}</pre>
+    </section>
+
+    <!-- 10. KV -->
+    <section id="kv">
+      <h2><span class="num">10</span> Upstash KV (Redis)</h2>
+      <div class="section-line"></div>
+      <p>
+        Upstash est une base Redis serverless (sans connexions persistantes).
+        On l'utilise via <code>@vercel/kv</code> pour stocker les données des viewers et construire des leaderboards.
+      </p>
+
+      <h3>Structures de données utilisées</h3>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Hash — <code>viewer:{user_id}</code></div>
+          <p>Stocke les infos d'un viewer : <code>display_name</code>, <code>sub_months</code>, <code>is_sub</code>, <code>updated_at</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Sorted Set — <code>leaderboard:sub_months</code></div>
+          <p>Classement par mois d'abonnement. Score = <code>sub_months</code>. Permet <code>ZRANGE</code> en ordre décroissant.</p>
+        </div>
+      </div>
+
+      <pre><span class="kw">import</span> { kv } <span class="kw">from</span> <span class="st">"@vercel/kv"</span>;
+
+<span class="cm">// Sauvegarder les données d'un viewer</span>
+<span class="kw">await</span> kv.hset(<span class="st">`viewer:${user_id}`</span>, {
+  display_name,
+  sub_months: sub_months || <span class="num">0</span>,
+  is_sub: is_sub || <span class="kw">false</span>,
+  updated_at: Date.now(),
+});
+
+<span class="cm">// Ajouter au leaderboard si sub (score = nb de mois)</span>
+<span class="kw">if</span> (is_sub && sub_months > <span class="num">0</span>) {
+  <span class="kw">await</span> kv.zadd(<span class="st">"leaderboard:sub_months"</span>, {
+    score: sub_months,
+    member: user_id
+  });
+}</pre>
+    </section>
+
+    <!-- 11. HOOKS -->
+    <section id="hooks">
+      <h2><span class="num">11</span> Custom Hooks React</h2>
+      <div class="section-line"></div>
+      <p>
+        Un <strong style="color:#fff">custom hook</strong> est une fonction préfixée <code>use</code> qui encapsule de la logique réutilisable
+        avec des hooks React (useState, useEffect, useRef…).
+      </p>
+
+      <h3><code>useIRC</code> — Anatomie complète</h3>
+      <pre><span class="kw">function</span> <span class="fn">useIRC</span>(token, username) {
+  <span class="cm">// États internes</span>
+  <span class="kw">const</span> [subMonths, setSubMonths] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [ircMessages, setIrcMessages] = <span class="fn">useState</span>([]);
+  <span class="kw">const</span> [connected, setConnected] = <span class="fn">useState</span>(<span class="kw">false</span>);
+  <span class="kw">const</span> wsRef = <span class="fn">useRef</span>(<span class="kw">null</span>);  <span class="cm">// ref stable, pas de re-render</span>
+
+  <span class="cm">// Connexion WebSocket (re-run si token ou username change)</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">if</span> (!token || !username) <span class="kw">return</span>;
+    <span class="kw">const</span> ws = <span class="kw">new</span> WebSocket(<span class="st">"wss://irc-ws.chat.twitch.tv"</span>);
+    wsRef.current = ws;
+    <span class="cm">/* ... handlers ... */</span>
+    <span class="cm">// Cleanup : ferme le WebSocket si le composant est démonté</span>
+    <span class="kw">return</span> () => { ws.close(); };
+  }, [token, username]);
+
+  <span class="cm">// Fonction stable (useCallback évite les re-renders inutiles)</span>
+  <span class="kw">const</span> sendIRC = <span class="fn">useCallback</span>((msg) => {
+    <span class="kw">const</span> ws = wsRef.current;
+    <span class="kw">if</span> (!ws || ws.readyState !== WebSocket.OPEN) <span class="kw">return false</span>;
+    ws.send(<span class="st">`PRIVMSG #daems_ :${msg}`</span>);
+    <span class="kw">return true</span>;
+  }, []);
+
+  <span class="kw">return</span> { subMonths, ircMessages, connected, sendIRC, parseBadges };
+}</pre>
+
+      <h3>Concepts React utilisés</h3>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title"><code>useRef</code></div>
+          <p>Référence mutable qui ne déclenche pas de re-render. Utilisé pour stocker l'instance WebSocket et les refs DOM (<code>bottomRef</code>, <code>inputRef</code>).</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><code>useCallback</code></div>
+          <p>Mémoïse une fonction pour éviter de la recréer à chaque render. Essentiel quand la fonction est passée en prop ou dans un <code>useEffect</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><code>useEffect</code> cleanup</div>
+          <p>La fonction retournée par <code>useEffect</code> s'exécute au démontage du composant. Ici, elle ferme le WebSocket proprement.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><code>useState</code> avec initializer</div>
+          <p><code>useState(() => localStorage.getItem("tw_token"))</code> — passer une fonction évite de lire le localStorage à chaque render.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. UI PATTERNS -->
+    <section id="ui-patterns">
+      <h2><span class="num">12</span> Patterns UI récurrents</h2>
+      <div class="section-line"></div>
+
+      <h3>Couleur déterministe par pseudo-random</h3>
+      <p>Assigner une couleur fixe à chaque username de manière consistante, sans la stocker :</p>
+      <pre><span class="kw">const</span> COLORS = [<span class="st">"#FF4500"</span>, <span class="st">"#FF69B4"</span>, <span class="st">"#9ACD32"</span>, <span class="st">"#00FF7F"</span>, ...];
+
+<span class="kw">const</span> colorFor = (name) =>
+  COLORS[name.split(<span class="st">""</span>).reduce((a, c) => a + c.charCodeAt(<span class="num">0</span>), <span class="num">0</span>) % COLORS.length];
+<span class="cm">// Même input → même couleur, toujours</span></pre>
+
+      <h3>Pagination par curseur (cursor-based)</h3>
+      <p>Twitch renvoie un <code>cursor</code> dans la réponse pour charger la page suivante :</p>
+      <pre><span class="kw">const</span> data = <span class="kw">await</span> twitchGet(<span class="st">"/clips"</span>, token, params);
+<span class="kw">const</span> nextCursor = data.pagination?.cursor || <span class="kw">null</span>;
+<span class="cm">// Pour la page suivante : params.after = nextCursor</span></pre>
+
+      <h3>Scroll automatique vers le bas (chat)</h3>
+      <pre><span class="kw">const</span> bottomRef = <span class="fn">useRef</span>(<span class="kw">null</span>);
+
+<span class="fn">useEffect</span>(() => {
+  bottomRef.current?.<span class="fn">scrollIntoView</span>({ behavior: <span class="st">"smooth"</span> });
+}, [allMessages.length]);  <span class="cm">// déclenche à chaque nouveau message</span>
+
+<span class="cm">// Dans le JSX, à la fin de la liste :</span>
+<span class="op">&lt;div</span> ref={bottomRef} <span class="op">/&gt;</span></pre>
+
+      <h3>Dropdown fermé au clic extérieur</h3>
+      <pre><span class="fn">useEffect</span>(() => {
+  <span class="kw">const</span> handler = (e) => {
+    <span class="kw">if</span> (ref.current && !ref.current.contains(e.target)) setOpen(<span class="kw">false</span>);
+  };
+  document.addEventListener(<span class="st">"mousedown"</span>, handler);
+  <span class="kw">return</span> () => document.removeEventListener(<span class="st">"mousedown"</span>, handler);
+}, []);</pre>
+    </section>
+
+    <!-- 13. DEPLOY -->
+    <section id="deploy">
+      <h2><span class="num">13</span> Déploiement & Variables d'environnement</h2>
+      <div class="section-line"></div>
+      <p>Le projet est déployé sur <strong style="color:#fff">Vercel</strong>. Le build Vite génère les fichiers statiques, et les fonctions <code>api/*.js</code> deviennent des Lambda functions.</p>
+
+      <h3>Variables d'environnement</h3>
+      <div class="callout callout-warn">
+        <strong>Sécurité :</strong> Ne jamais committer ces valeurs dans le code.
+        Elles sont dans <code>.env.local</code> en dev (non-commité) et dans le dashboard Vercel en prod.
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title"><code>BROADCASTER_TOKEN</code></div>
+          <p>Token OAuth du broadcaster. Donne accès aux endpoints Twitch privés (liste des subs, etc.).</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><code>KV_REST_API_URL</code> + <code>KV_REST_API_TOKEN</code></div>
+          <p>Credentials Upstash pour la base de données Redis.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><code>ADMIN_SECRET</code></div>
+          <p>Secret pour protéger la route <code>/api/save-token</code> (accessible seulement par l'admin).</p>
+        </div>
+        <div class="card">
+          <div class="card-title">CLIENT_ID (hardcodé)</div>
+          <p>L'ID de l'app Twitch est dans le code car il est public par nature (comme une API key publique).</p>
+        </div>
+      </div>
+
+      <h3>Commandes utiles</h3>
+      <pre>npm run dev      <span class="cm"># Démarrer le serveur de développement</span>
+npm run build    <span class="cm"># Générer le build de production dans dist/</span>
+npm run preview  <span class="cm"># Prévisualiser le build de prod en local</span>
+npm run lint     <span class="cm"># Vérifier le code avec ESLint</span></pre>
+    </section>
+
+    <!-- RECAP -->
+    <section id="recap" style="margin-bottom: 0;">
+      <h2><span class="num">✓</span> Ce qu'on a appris en résumé</h2>
+      <div class="section-line"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">🔐 Auth & Sécurité</div>
+          <ul class="styled" style="margin-top:8px;">
+            <li>OAuth 2.0 Implicit Grant</li>
+            <li>Scopes Twitch</li>
+            <li>Tokens côté serveur vs client</li>
+            <li>Variables d'environnement</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">⚛️ React avancé</div>
+          <ul class="styled" style="margin-top:8px;">
+            <li>Custom hooks (<code>useIRC</code>)</li>
+            <li><code>useRef</code>, <code>useCallback</code></li>
+            <li>Optimistic UI</li>
+            <li>Déduplication de données</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🌐 Réseau & Protocoles</div>
+          <ul class="styled" style="margin-top:8px;">
+            <li>WebSocket (IRC Twitch)</li>
+            <li>REST API avec pagination curseur</li>
+            <li>CORS dans les serverless functions</li>
+            <li>Validation de token OAuth</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ Backend serverless</div>
+          <ul class="styled" style="margin-top:8px;">
+            <li>Vercel Functions (handler pattern)</li>
+            <li>Redis (Hash + Sorted Set)</li>
+            <li>Proxy API pour protéger les tokens</li>
+            <li>Batching des requêtes API</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Projet <strong>daems-site</strong> · React 19 + Vite + Vercel · Généré le 26 avril 2026
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>
