@@ -4,7 +4,7 @@ import { MiniUserBanner } from "../banners";
 export function TwitchChat({ircMessages,connected,sendIRC,parseBadges,userInfo}) {
   const [input,setInput]=useState("");
   const [localMessages,setLocalMessages]=useState([]);
-  const bottomRef=useRef(null);
+  const messagesRef=useRef(null);
   const inputRef=useRef(null);
 
   const allMessages=(()=>{
@@ -15,7 +15,18 @@ export function TwitchChat({ircMessages,connected,sendIRC,parseBadges,userInfo})
     return all;
   })();
 
-  useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:"smooth"}); },[allMessages.length]);
+  const isNearBottom=()=>{
+    const el=messagesRef.current;
+    if(!el) return true;
+    return el.scrollHeight-el.scrollTop-el.clientHeight<80;
+  };
+
+  useEffect(()=>{
+    if(isNearBottom()){
+      const el=messagesRef.current;
+      if(el) el.scrollTop=el.scrollHeight;
+    }
+  },[allMessages.length]);
 
   const badgeEmoji=(badge)=>({broadcaster:"🎙",moderator:"⚔️",subscriber:"⭐",vip:"💎",staff:"🛡",partner:"✅",premium:"👑"})[badge]||null;
 
@@ -29,7 +40,7 @@ export function TwitchChat({ircMessages,connected,sendIRC,parseBadges,userInfo})
   };
 
   return (
-    <div style={{borderRadius:16,border:"1px solid rgba(145,70,255,0.22)",display:"flex",flexDirection:"column",height:"100%",minHeight:460,overflow:"hidden",background:"rgba(10,0,22,0.95)"}}>
+    <div style={{borderRadius:16,border:"1px solid rgba(145,70,255,0.22)",display:"flex",flexDirection:"column",height:"100%",overflow:"hidden",background:"rgba(10,0,22,0.95)"}}>
       <div style={{padding:"10px 14px",background:"rgba(145,70,255,0.09)",borderBottom:"1px solid rgba(145,70,255,0.16)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="#bf7fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
@@ -40,7 +51,7 @@ export function TwitchChat({ircMessages,connected,sendIRC,parseBadges,userInfo})
           <span style={{fontSize:"0.65rem",color:connected?"#10b981":"#ef4444",fontWeight:600}}>{connected?"Connecté":"Déconnecté"}</span>
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"10px 12px",display:"flex",flexDirection:"column",gap:2}}>
+      <div ref={messagesRef} style={{flex:1,overflowY:"auto",padding:"10px 12px",display:"flex",flexDirection:"column",gap:2}}>
         {allMessages.length===0&&<div style={{color:"#3a3060",fontSize:"0.8rem",textAlign:"center",marginTop:40,fontStyle:"italic"}}>En attente de messages…</div>}
         {allMessages.map(msg=>
           msg.isSystem?(
@@ -67,7 +78,6 @@ export function TwitchChat({ircMessages,connected,sendIRC,parseBadges,userInfo})
             </div>
           )
         )}
-        <div ref={bottomRef}/>
       </div>
       <div style={{padding:"10px 12px",borderTop:"1px solid rgba(145,70,255,0.14)",display:"flex",gap:8,flexShrink:0,background:"rgba(0,0,0,0.25)"}}>
         <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}

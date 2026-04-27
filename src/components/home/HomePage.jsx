@@ -15,7 +15,7 @@ export function HomePage({token,userInfo,ircMessages,connected,sendIRC,parseBadg
 
       <div id="section-stream" style={{padding:"48px 0 32px"}}>
         <h2 style={{fontFamily:"var(--font-display)",fontSize:"clamp(1.8rem,4vw,2.8rem)",letterSpacing:"0.05em",color:"var(--text-primary)",marginBottom:24}}>LE STREAM</h2>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:16,minHeight:460}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:16,height:520}}>
           <div style={{borderRadius:16,overflow:"hidden",border:"1px solid rgba(145,70,255,0.26)",boxShadow:"0 0 40px rgba(145,70,255,0.1)"}}>
             {isLive===false?(
               <OfflineCard/>

@@ -33,7 +33,7 @@ export function SideNav({tab, setTab, activeAnchor, setActiveAnchor}) {
   return (
     <aside className="sidebar-left">
       <div className="sidenav-logo">
-        <img src="/logo-daems.png" alt="daems_" style={{width:150,objectFit:"contain"}}/>
+        <img src="/logo-daems.png" alt="daems_" style={{width:225,objectFit:"contain"}}/>
       </div>
       <div className="sidenav-divider"/>
 
