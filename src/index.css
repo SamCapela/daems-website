@@ -125,84 +125,116 @@ a { color: inherit; }
   font-family: var(--font-body);
 }
 
-.app-header {
+.app-main {
+  margin-left: 220px;
+  margin-right: 200px;
+  padding: 48px 32px 96px;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR LEFT ================================================= */
+.sidebar-left {
   position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  height: 72px;
-  background: rgba(10,0,16,0.88);
+  left: 0; top: 0;
+  width: 220px;
+  height: 100vh;
+  background: rgba(8,0,14,0.96);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(145,70,255,0.18);
+  border-right: 1px solid rgba(145,70,255,0.16);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 28px;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.7);
-  overflow: visible;
+  flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.header-logo {
-  position: relative;
-  z-index: 20;
+.sidenav-logo {
+  padding: 20px 16px 12px;
+  display: flex;
+  justify-content: center;
   flex-shrink: 0;
-  align-self: flex-start;
-  margin-left: -60px !important;
 }
 
-.app-main {
-  padding: 96px 28px 96px;
-  max-width: 1280px;
-  margin: 0 auto;
-  width: 100%;
+.sidenav-divider {
+  height: 1px;
+  background: rgba(145,70,255,0.14);
+  margin: 0 16px 8px;
+  flex-shrink: 0;
 }
 
-/* hero page : full-bleed, pas de max-width */
-.app-main-full {
-  padding-top: 72px;
-  width: 100%;
-}
-
-/* contenu centré dans une section full-bleed */
-.section-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 28px;
-}
-
-/* === NAV ========================================================== */
-.app-nav { display: flex; gap: 2px; }
-
-.nav-tab {
-  padding: 8px 18px;
-  border-radius: var(--radius-sm);
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  font-family: inherit;
-  background: transparent;
-  color: var(--text-muted);
-  transition: all 0.15s;
+.sidenav-item {
   display: flex;
   align-items: center;
-  gap: 7px;
-  letter-spacing: 0.01em;
+  gap: 9px;
+  padding: 10px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  border-left: 3px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
 }
-.nav-tab:hover {
+.sidenav-item:hover {
   background: rgba(145,70,255,0.1);
   color: var(--color-brand-light);
 }
-.nav-tab.active {
-  background: rgba(145,70,255,0.16);
+.sidenav-item.active {
+  background: rgba(145,70,255,0.13);
   color: var(--text-primary);
-  font-weight: 700;
-  border-bottom-color: var(--color-brand);
-  box-shadow: 0 2px 14px rgba(145,70,255,0.22);
+  border-left-color: var(--color-brand);
 }
 
-.header-actions { display: flex; align-items: center; gap: 10px; }
+.sidenav-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 30px;
+  font-size: 0.73rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
+  border-radius: 0 6px 6px 0;
+}
+.sidenav-sub:hover {
+  background: rgba(145,70,255,0.08);
+  color: var(--color-brand-light);
+}
+.sidenav-sub.active {
+  color: var(--color-brand-light);
+  background: rgba(145,70,255,0.1);
+}
+
+/* === PROFILE CARD ================================================= */
+.profile-card-fixed {
+  position: fixed;
+  right: 0; top: 0;
+  width: 200px;
+  height: 100vh;
+  background: rgba(8,0,14,0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(145,70,255,0.16);
+  padding: 28px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+  overflow-y: auto;
+}
 
 /* === BUTTONS ====================================================== */
 .btn {
