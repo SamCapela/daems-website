@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useReveal } from "../hooks/useReveal";
+import { useBreakpoint } from "../hooks/useBreakpoint";
 
 export function ShopPage() {
   const [email,setEmail]=useState("");
   const [submitted,setSubmitted]=useState(false);
   const [ref,visible]=useReveal(0.1);
+  const { isMobile } = useBreakpoint();
 
   const MYSTERY=[
     {label:"T-Shirt Raton",   tease:"Coton premium"},
@@ -14,7 +16,7 @@ export function ShopPage() {
 
   return (
     <div ref={ref} style={{opacity:visible?1:0,transform:visible?"none":"translateY(22px)",transition:"opacity 0.6s ease,transform 0.6s ease"}}>
-      <div style={{textAlign:"center",padding:"72px 40px",position:"relative",overflow:"hidden",borderRadius:"24px 8px 24px 8px",background:"linear-gradient(135deg,rgba(145,70,255,0.08),rgba(255,107,157,0.06))",border:"1px solid rgba(145,70,255,0.2)",marginBottom:56}}>
+      <div style={{textAlign:"center",padding:isMobile?"48px 20px":"72px 40px",position:"relative",overflow:"hidden",borderRadius:"24px 8px 24px 8px",background:"linear-gradient(135deg,rgba(145,70,255,0.08),rgba(255,107,157,0.06))",border:"1px solid rgba(145,70,255,0.2)",marginBottom:40}}>
         <div style={{position:"absolute",top:-80,left:"20%",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(145,70,255,0.18),transparent)",filter:"blur(70px)",pointerEvents:"none"}}/>
         <div style={{position:"absolute",bottom:-60,right:"10%",width:320,height:320,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,157,0.14),transparent)",filter:"blur(60px)",pointerEvents:"none"}}/>
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.04,pointerEvents:"none"}} aria-hidden="true">
@@ -23,15 +25,15 @@ export function ShopPage() {
         </svg>
         <div style={{position:"relative",zIndex:1}}>
           <div style={{animation:"raccoonFloat 4s ease-in-out infinite",display:"inline-block",marginBottom:24}}>
-            <img src="/logo-round.png" alt="daems_" style={{width:120,height:120,objectFit:"contain"}}/>
+            <img src="/logo-round.png" alt="daems_" style={{width:isMobile?80:120,height:isMobile?80:120,objectFit:"contain"}}/>
           </div>
-          <h1 style={{fontFamily:"var(--font-display)",fontSize:"clamp(2.5rem,7vw,5rem)",letterSpacing:"0.04em",color:"var(--text-primary)",marginBottom:14}}>LA BOUTIQUE DU RATON</h1>
-          <p style={{fontFamily:"var(--font-body)",fontSize:"1.05rem",color:"var(--text-secondary)",marginBottom:36,maxWidth:420,margin:"0 auto 36px"}}>Des merches exclusifs en préparation — le raton est aux fourneaux.</p>
+          <h1 style={{fontFamily:"var(--font-display)",fontSize:"clamp(2rem,7vw,5rem)",letterSpacing:"0.04em",color:"var(--text-primary)",marginBottom:14}}>LA BOUTIQUE DU RATON</h1>
+          <p style={{fontFamily:"var(--font-body)",fontSize:"1rem",color:"var(--text-secondary)",marginBottom:36,maxWidth:420,margin:"0 auto 36px"}}>Des merches exclusifs en préparation — le raton est aux fourneaux.</p>
           {!submitted?(
-            <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",maxWidth:480,margin:"0 auto"}}>
+            <div style={{display:"flex",flexDirection:isMobile?"column":"row",gap:10,justifyContent:"center",flexWrap:"wrap",maxWidth:480,margin:"0 auto"}}>
               <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
                 onKeyDown={e=>e.key==="Enter"&&email.includes("@")&&setSubmitted(true)}
-                placeholder="ton@email.com" className="shop-email-input"/>
+                placeholder="ton@email.com" className="shop-email-input" style={{width:isMobile?"100%":undefined}}/>
               <button onClick={()=>email.includes("@")&&setSubmitted(true)} className="btn btn-twitch" style={{whiteSpace:"nowrap",padding:"12px 24px"}}>
                 Préviens-moi au lancement
               </button>
@@ -45,15 +47,15 @@ export function ShopPage() {
         </div>
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:isMobile?12:20}}>
         {MYSTERY.map((item,i)=>(
-          <div key={i} style={{borderRadius:"20px 6px 20px 6px",background:"rgba(145,70,255,0.04)",border:"1px solid rgba(145,70,255,0.13)",padding:"48px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:18,position:"relative",overflow:"hidden"}}>
-            <div style={{width:110,height:110,borderRadius:20,background:`linear-gradient(135deg,rgba(145,70,255,${0.15+i*0.05}),rgba(255,107,157,${0.1+i*0.03}))`,filter:"blur(14px)",boxShadow:"0 8px 32px rgba(145,70,255,0.18)"}}/>
-            <div style={{textAlign:"center"}}>
-              <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",letterSpacing:"0.06em",color:"rgba(145,70,255,0.45)"}}>{item.label}</div>
+          <div key={i} style={{borderRadius:"20px 6px 20px 6px",background:"rgba(145,70,255,0.04)",border:"1px solid rgba(145,70,255,0.13)",padding:"36px 24px",display:"flex",flexDirection:isMobile?"row":"column",alignItems:"center",gap:18,position:"relative",overflow:"hidden"}}>
+            <div style={{width:isMobile?60:110,height:isMobile?60:110,flexShrink:0,borderRadius:16,background:`linear-gradient(135deg,rgba(145,70,255,${0.15+i*0.05}),rgba(255,107,157,${0.1+i*0.03}))`,filter:"blur(12px)",boxShadow:"0 8px 32px rgba(145,70,255,0.18)"}}/>
+            <div style={{textAlign:isMobile?"left":"center"}}>
+              <div style={{fontFamily:"var(--font-display)",fontSize:"1.05rem",letterSpacing:"0.06em",color:"rgba(145,70,255,0.45)"}}>{item.label}</div>
               <div style={{fontSize:"0.72rem",color:"var(--text-muted)",marginTop:4,fontFamily:"var(--font-body)"}}>{item.tease}</div>
             </div>
-            <div style={{background:"rgba(145,70,255,0.12)",border:"1px solid rgba(145,70,255,0.22)",color:"rgba(145,70,255,0.6)",borderRadius:99,padding:"4px 14px",fontSize:"0.68rem",fontWeight:700,letterSpacing:"0.12em"}}>BIENTÔT</div>
+            {!isMobile&&<div style={{background:"rgba(145,70,255,0.12)",border:"1px solid rgba(145,70,255,0.22)",color:"rgba(145,70,255,0.6)",borderRadius:99,padding:"4px 14px",fontSize:"0.68rem",fontWeight:700,letterSpacing:"0.12em"}}>BIENTÔT</div>}
             <div style={{position:"absolute",inset:0,backdropFilter:"blur(2px)",background:"rgba(10,0,16,0.08)",pointerEvents:"none"}}/>
           </div>
         ))}

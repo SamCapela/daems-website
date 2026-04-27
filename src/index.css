@@ -132,6 +132,49 @@ a { color: inherit; }
   min-height: 100vh;
 }
 
+/* === MOBILE TOP BAR =============================================== */
+.mobile-topbar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(8,0,14,0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(145,70,255,0.16);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 300;
+}
+
+/* === MOBILE DRAWER ================================================ */
+.mobile-drawer {
+  position: fixed;
+  top: 56px; left: 0;
+  width: 280px;
+  height: calc(100vh - 56px);
+  background: rgba(8,0,14,0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(145,70,255,0.2);
+  z-index: 250;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+}
+.mobile-drawer.open { transform: translateX(0); }
+
+.mobile-overlay {
+  position: fixed;
+  top: 56px; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.58);
+  z-index: 200;
+  animation: fadeIn 0.18s ease;
+}
+
 /* === SIDEBAR LEFT ================================================= */
 .sidebar-left {
   position: fixed;
@@ -499,6 +542,20 @@ a { color: inherit; }
   transition: background 0.15s;
 }
 .avatar-menu-btn:hover { background: rgba(255,60,60,0.1); }
+
+/* === RESPONSIVE =================================================== */
+@media (max-width: 1099px) {
+  .sidebar-left       { width: 180px; }
+  .profile-card-fixed { display: none; }
+  .app-main           { margin-left: 180px; margin-right: 0; }
+}
+
+@media (max-width: 767px) {
+  .sidebar-left { display: none; }
+  .profile-card-fixed { display: none; }
+  .mobile-topbar { display: flex; }
+  .app-main { margin-left: 0; margin-right: 0; padding: 68px 16px 80px; }
+}
 
 /* === ROADMAP SCROLL =============================================== */
 .roadmap-scroll {

@@ -4,29 +4,36 @@ import './index.css';
 import { CLIENT_ID, REDIRECT_URI, BROADCASTER_ID, SCOPES, twitchGet } from "./constants";
 import { useIRC } from "./hooks/useIRC";
 import { useStreamStatus } from "./hooks/useStreamStatus";
+import { useBreakpoint } from "./hooks/useBreakpoint";
 import { formatSubDuration, getBannerTier } from "./components/banners";
 import { LoadSpinner } from "./components/ui";
 import { LoginPage } from "./components/LoginPage";
 import { SideNav } from "./components/SideNav";
+import { MobileTopBar } from "./components/MobileTopBar";
 import { ProfileCard } from "./components/ProfileCard";
 import { HomePage } from "./components/home/HomePage";
 import { ClipsPage } from "./components/ClipsPage";
 import { ShopPage } from "./components/ShopPage";
 
 export default function App() {
-  const [token,setToken]           = useState(()=>localStorage.getItem("tw_token"));
-  const [userInfo,setUserInfo]     = useState(null);
-  const [isFollower,setIsFollower] = useState(false);
-  const [isSub,setIsSub]           = useState(false);
-  const [tab,setTab]               = useState("home");
+  const [token,setToken]               = useState(()=>localStorage.getItem("tw_token"));
+  const [userInfo,setUserInfo]         = useState(null);
+  const [isFollower,setIsFollower]     = useState(false);
+  const [isSub,setIsSub]               = useState(false);
+  const [tab,setTab]                   = useState("home");
   const [activeAnchor,setActiveAnchor] = useState("section-hero");
-  const [booting,setBooting]       = useState(true);
-  const [stats,setStats]           = useState({followers:null,subs:null});
+  const [booting,setBooting]           = useState(true);
+  const [stats,setStats]               = useState({followers:null,subs:null});
+  const [drawerOpen,setDrawerOpen]     = useState(false);
 
   const {subMonths,ircMessages,connected,sendIRC,parseBadges} = useIRC(token, userInfo?.login);
   const {isLive,viewerCount} = useStreamStatus(token);
+  const { isMobile } = useBreakpoint();
   const subDuration = isSub ? formatSubDuration(subMonths) : null;
   const bannerTier  = getBannerTier(subMonths, isSub);
+
+  // Ferme le drawer si on passe en desktop
+  useEffect(()=>{ if (!isMobile) setDrawerOpen(false); },[isMobile]);
 
   useEffect(()=>{
     window.__forceUnsub=()=>setIsSub(false);
@@ -86,9 +93,20 @@ export default function App() {
     </div>
   );
 
+  const sideNavProps = {
+    tab, setTab, activeAnchor, setActiveAnchor,
+    drawerOpen, setDrawerOpen,
+    userInfo, isFollower, isSub, subMonths, bannerTier, subDuration,
+    onLogout: logout,
+  };
+
   return (
     <div className="app-wrapper">
-      <SideNav tab={tab} setTab={setTab} activeAnchor={activeAnchor} setActiveAnchor={setActiveAnchor}/>
+      {isMobile&&(
+        <MobileTopBar drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} userInfo={userInfo}/>
+      )}
+
+      <SideNav {...sideNavProps}/>
 
       <main className="app-main">
         {tab==="home"  && <HomePage token={token} userInfo={userInfo} ircMessages={ircMessages} connected={connected} sendIRC={sendIRC} parseBadges={parseBadges} isLive={isLive} viewerCount={viewerCount} stats={stats}/>}
@@ -96,15 +114,17 @@ export default function App() {
         {tab==="shop"  && <ShopPage/>}
       </main>
 
-      <ProfileCard
-        userInfo={userInfo}
-        isFollower={isFollower}
-        isSub={isSub}
-        subMonths={subMonths}
-        bannerTier={bannerTier}
-        subDuration={subDuration}
-        onLogout={logout}
-      />
+      {!isMobile&&(
+        <ProfileCard
+          userInfo={userInfo}
+          isFollower={isFollower}
+          isSub={isSub}
+          subMonths={subMonths}
+          bannerTier={bannerTier}
+          subDuration={subDuration}
+          onLogout={logout}
+        />
+      )}
     </div>
   );
 }
